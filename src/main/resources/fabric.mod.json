@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "agentic-state-extractor",
+	"version": "${version}",
+	"name": "Agentic State Extractor",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/agentic-state-extractor/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"de.kfru.ml.AgenticStateExtractor"
+		],
+		"client": [
+			"de.kfru.ml.AgenticStateExtractorClient"
+		]
+	},
+	"mixins": [
+		"agentic-state-extractor.mixins.json",
+		{
+			"config": "agentic-state-extractor.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
