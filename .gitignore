@@ -30,7 +30,10 @@ bin/
 
 # fabric
 
-run/
+run/*
+
+# don't ignore the saves folder
+!run/saves/
 
 # java
 
