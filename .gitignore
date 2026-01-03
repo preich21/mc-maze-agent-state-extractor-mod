@@ -32,9 +32,6 @@ bin/
 
 run/*
 
-# don't ignore the saves folder
-!run/saves/
-
 # java
 
 hs_err_*.log
