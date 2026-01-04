@@ -17,9 +17,6 @@ public class ActionMessage extends IncomingMessage {
 
     private static final Gson GSON = new Gson();
 
-    private int episode;
-    private int step;
-
     private int applyForTicks;
 
     private float moveForward;

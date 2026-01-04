@@ -1,6 +1,7 @@
 package de.kfru.ml;
 
 import de.kfru.ml.action.PlayerActions;
+import de.kfru.ml.action.PlayerReset;
 import de.kfru.ml.state.PlayerState;
 import de.kfru.ml.ws.AgentWebsocketServer;
 import de.kfru.ml.ws.messages.*;
@@ -43,11 +44,15 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
                     onActionCompleted(client, action);
                     latestAction = null;
                 }
+            } else if (latestAction instanceof ResetMessage reset) {
+                // resets take exactly one tick
+                onResetCompleted(client, reset);
+                latestAction = null;
             }
         }
 
-        if (message instanceof ResetMessage resetMessage) {
-            onReset(client, resetMessage);
+        if (message instanceof ResetMessage) {
+            onReset(client);
         }
 
         if (message instanceof ActionMessage actionMessage) {
@@ -57,27 +62,36 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
         }
     }
 
-    @SuppressWarnings("DataFlowIssue") // client.player and client.world have already been checked to be not null
     private void onActionCompleted(final MinecraftClient client, final ActionMessage action) {
+        final StateMessage stateMessage = buildStateMessage(client, action, MessageType.STATE_AFTER_ACTION);
+        ws.broadcast(stateMessage.toJson());
+    }
+
+    @SuppressWarnings("DataFlowIssue") // client.player and client.world have already been checked to be not null
+    private StateMessage buildStateMessage(final MinecraftClient client, final IncomingMessage message, final MessageType type) {
         final PlayerState state = PlayerState.of(client);
 
         final long tick = client.world.getTime();
 
-        StateMessage stateMessage = StateMessage.builder()
-                .type(MessageType.STATE_AFTER_ACTION)
-                .episode(action.getEpisode())
-                .step(action.getStep())
+        return StateMessage.builder()
+                .type(type)
+                .episode(message.getEpisode())
+                .step(message.getStep())
                 .tickStart(latestActionsStartedTick)
                 .tickEnd(tick)
                 .playerState(state)
                 .build();
-
-        ws.broadcast(stateMessage.toJson());
     }
 
-    private void onReset(final MinecraftClient client, final ResetMessage resetMessage) {
-        // TODO: kill all current actions
-        // TODO: port player back to the starting position & reset their camera angle
-        // TODO: notify agent when finished & waited one tick for everything to settle
+    private void onReset(final MinecraftClient client) {
+        actions.clear();
+        PlayerReset.perform(client);
+        logger.info("Reset executed.");
+    }
+
+    private void onResetCompleted(final MinecraftClient client, final ResetMessage reset) {
+        final StateMessage stateMessage = buildStateMessage(client, reset, MessageType.STATE_AFTER_RESET);
+        ws.broadcast(stateMessage.toJson());
+        logger.info("Reset completed and state sent to agent.");
     }
 }

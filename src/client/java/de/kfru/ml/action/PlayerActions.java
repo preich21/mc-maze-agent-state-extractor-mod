@@ -45,6 +45,13 @@ public class PlayerActions {
         }
     }
 
+    public void clear() {
+        for (final PlayerAction action : actions.values()) {
+            action.cancel();
+        }
+        actions.clear();
+    }
+
     public enum Type {
         MOVE_FORWARD,
         MOVE_SIDEWARDS,
