@@ -41,6 +41,8 @@ dependencies {
 
 	compileOnly "org.projectlombok:lombok:1.18.42"
 	annotationProcessor "org.projectlombok:lombok:1.18.42"
+
+	implementation include("org.java-websocket:Java-WebSocket:1.6.0")
 }
 
 processResources {

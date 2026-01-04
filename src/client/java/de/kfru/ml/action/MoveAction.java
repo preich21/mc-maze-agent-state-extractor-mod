@@ -1,11 +1,13 @@
 package de.kfru.ml.action;
 
+import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 import net.minecraft.client.MinecraftClient;
 
 @SuperBuilder
 public class MoveAction extends PlayerAction {
 
+    @Getter
     private final Direction direction;
 
     @Override

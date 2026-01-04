@@ -13,7 +13,7 @@ import org.jspecify.annotations.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public record FieldOfVision(
+public record FieldOfView(
         List<BlockInFOV> blocksInFOV
 ) {
 
@@ -22,10 +22,10 @@ public record FieldOfVision(
     private static final float YAW_STEP_DEG = 15.0f;
     private static final float PITCH_STEP_DEG = 15.0f;
 
-    public static FieldOfVision of(final ClientPlayerEntity player, final ClientWorld world) {
+    public static FieldOfView of(final ClientPlayerEntity player, final ClientWorld world) {
         final List<BlockInFOV> blocksInFOV = computeBlocksInFOV(player, world);
 
-        return new FieldOfVision(blocksInFOV);
+        return new FieldOfView(blocksInFOV);
     }
 
     private static List<BlockInFOV> computeBlocksInFOV(ClientPlayerEntity player, ClientWorld world) {

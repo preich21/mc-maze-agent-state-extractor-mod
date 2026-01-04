@@ -11,24 +11,21 @@ public record PlayerState(
         PlayerPosition position,
         PlayerDirection facing,
         BlockType standingOn,
-        FieldOfVision fieldOfVision
+        FieldOfView fieldOfView
 ) {
 
+    @SuppressWarnings("DataFlowIssue") // client.player and client.world have already been checked to be not null
     public static PlayerState of(final MinecraftClient client) {
-        if (client.player == null || client.world == null) {
-            return null;
-        }
-
         final var position = PlayerPosition.of(client.player);
         final var direction = PlayerDirection.of(client.player);
         final var standingOn = BlockType.below(client.player, client.world);
-        final var fieldOfVision = FieldOfVision.of(client.player, client.world);
+        final var fieldOfVision = FieldOfView.of(client.player, client.world);
 
         return builder()
                 .position(position)
                 .facing(direction)
                 .standingOn(standingOn)
-                .fieldOfVision(fieldOfVision)
+                .fieldOfView(fieldOfVision)
                 .build();
     }
 
@@ -38,7 +35,7 @@ public record PlayerState(
                 "position=" + position +
                 ", facing=" + facing +
                 ", standingOn=" + standingOn +
-                ", fieldOfVision=" + fieldOfVision +
+                ", fieldOfVision=" + fieldOfView +
                 '}';
     }
 
