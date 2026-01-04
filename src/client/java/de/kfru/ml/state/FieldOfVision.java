@@ -1,4 +1,4 @@
-package de.kfru.ml.entity;
+package de.kfru.ml.state;
 
 import lombok.Builder;
 import net.minecraft.block.BlockState;

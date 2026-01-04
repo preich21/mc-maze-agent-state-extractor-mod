@@ -1,4 +1,4 @@
-package de.kfru.ml.entity;
+package de.kfru.ml.state;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
