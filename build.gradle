@@ -22,7 +22,7 @@ loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		"agentic-state-extractor" {
+		"mc-maze-agent-state-extractor-mod" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}

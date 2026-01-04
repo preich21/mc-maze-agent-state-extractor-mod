@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "agentic-state-extractor",
+	"id": "mc-maze-agent-state-extractor-mod",
 	"version": "${version}",
 	"name": "Agentic State Extractor",
 	"description": "This is an example description! Tell everyone what your mod is about!",
@@ -12,20 +12,20 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/agentic-state-extractor/icon.png",
+	"icon": "assets/mc-maze-agent-state-extractor-mod/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"de.kfru.ml.AgenticStateExtractor"
+			"de.kfru.ml.McMazeAgentStateExtractorMod"
 		],
 		"client": [
-			"de.kfru.ml.AgenticStateExtractorClient"
+			"de.kfru.ml.McMazeAgentStateExtractorModClient"
 		]
 	},
 	"mixins": [
-		"agentic-state-extractor.mixins.json",
+		"mc-maze-agent-state-extractor-mod.mixins.json",
 		{
-			"config": "agentic-state-extractor.client.mixins.json",
+			"config": "mc-maze-agent-state-extractor-mod.client.mixins.json",
 			"environment": "client"
 		}
 	],

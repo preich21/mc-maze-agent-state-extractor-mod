@@ -5,8 +5,8 @@ import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AgenticStateExtractor implements ModInitializer {
-	public static final String MOD_ID = "agentic-state-extractor";
+public class McMazeAgentStateExtractorMod implements ModInitializer {
+	public static final String MOD_ID = "mc-maze-agent-state-extractor-mod";
 
 	// This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.

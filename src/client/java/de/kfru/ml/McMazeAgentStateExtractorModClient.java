@@ -6,9 +6,9 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AgenticStateExtractorClient implements ClientModInitializer {
+public class McMazeAgentStateExtractorModClient implements ClientModInitializer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("agentic-state-extractor");
+    private static final Logger LOGGER = LoggerFactory.getLogger("mc-maze-agent-state-extractor-mod");
 
     private static long tickCounter = 0;
 
