@@ -30,7 +30,16 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
 
         ClientTickEvents.END_CLIENT_TICK.register(this::onTick);
 
+        disablePauseMenuWhenInBackground();
+
         logger.info("McMazeAgentStateExtractorModClient initialized successfully.");
+    }
+
+    private void disablePauseMenuWhenInBackground() {
+        MinecraftClient.getInstance().execute(() -> {
+            MinecraftClient.getInstance().options.pauseOnLostFocus = false;
+            logger.info("Disabled pause on lost focus.");
+        });
     }
 
     private void onTick(final MinecraftClient client) {
