@@ -52,6 +52,8 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
         }
 
         if (message instanceof ResetMessage) {
+            latestAction = message;
+            latestActionsStartedTick = client.world.getTime();
             onReset(client);
         }
 

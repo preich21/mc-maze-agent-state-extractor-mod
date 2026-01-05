@@ -30,6 +30,7 @@ public class AgentWebsocketServer extends WebSocketServer {
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
+        logger.info("WebSocket connection opened from [{}]", conn.getRemoteSocketAddress());
         conn.send("{\"type\": \"hello\", \"role\": \"minecraft\"}");
     }
 

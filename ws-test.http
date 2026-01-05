@@ -1,0 +1,15 @@
+### Full websocket flow
+WEBSOCKET ws://localhost:8081/ws
+Content-Type: application/json // used only for IDE highlighting.
+
+{
+  "type": "RESET_REQUEST",
+  "episode": 1,
+  "step": 0
+}
+=== wait-for-server
+{"type": "ACTION_REQUEST", "episode": 1, "step": 1, "applyForTicks": 60, "moveForward": 1, "moveSidewards": 0, "jump": true, "yawDelta": 5.0, "pitchDelta": 0.0}
+
+
+### Open websocket connection for interactive flow
+WEBSOCKET ws://localhost:8081/websocket
