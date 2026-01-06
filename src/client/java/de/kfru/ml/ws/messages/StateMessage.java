@@ -13,7 +13,6 @@ public class StateMessage {
     private static final Gson GSON = new Gson();
 
     private MessageType type;
-    private boolean died;
     private int episode;
     private int step;
     private long tickStart;
@@ -26,9 +25,11 @@ public class StateMessage {
     private double yaw;
     private double pitch;
 
+    private boolean died;
     private String standingOn;
 
-    private List<FieldOfView.BlockInFOV> fieldOfView;
+    private List<Double> fovDistances;
+    private List<Integer> fovBlocks;
 
     @SuppressWarnings("unused")
     public static class StateMessageBuilder {
@@ -39,7 +40,9 @@ public class StateMessage {
             this.yaw = state.facing().yaw();
             this.pitch = state.facing().pitch();
             this.standingOn = state.standingOn().toString();
-            this.fieldOfView = state.fieldOfView().blocksInFOV();
+            final FieldOfView fov = state.fieldOfView();
+            this.fovDistances = fov.getDistances();
+            this.fovBlocks = fov.getBlocks();
             return this;
         }
     }

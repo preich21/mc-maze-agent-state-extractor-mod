@@ -6,11 +6,17 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 
 public enum BlockType {
-    AIR,
-    BLOCK,
-    START_BLOCK,
-    GOAL_BLOCK,
+    AIR(0),
+    START_BLOCK(2),
+    BLOCK(1),
+    GOAL_BLOCK(3),
     ;
+
+    public final int id;
+
+    BlockType(final int id) {
+        this.id = id;
+    }
 
     public static BlockType of(Block block) {
         if (block == Blocks.AIR) {

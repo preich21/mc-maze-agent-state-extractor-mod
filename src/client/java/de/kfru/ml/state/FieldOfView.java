@@ -80,6 +80,14 @@ public record FieldOfView(
         return result.toString();
     }
 
+    public @NonNull List<Double> getDistances() {
+        return blocksInFOV.stream().map(block -> block.distance).toList();
+    }
+
+    public @NonNull List<Integer> getBlocks() {
+        return blocksInFOV.stream().map(block -> block.type.id).toList();
+    }
+
     @Builder
     public record BlockInFOV(BlockType type, double distance) {
 
