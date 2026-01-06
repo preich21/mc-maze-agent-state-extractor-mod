@@ -7,15 +7,20 @@ import de.kfru.ml.ws.AgentWebsocketServer;
 import de.kfru.ml.ws.messages.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class McMazeAgentStateExtractorModClient implements ClientModInitializer {
 
-    private static final Logger logger = LoggerFactory.getLogger("mc-maze-agent-state-extractor-mod");
+    private static final Logger logger = LoggerFactory.getLogger("mc-maze-agent-state-extractor-mod-client");
     private static final PlayerActions actions = new PlayerActions();
 
     private AgentWebsocketServer ws;
@@ -23,16 +28,28 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
     private long latestActionsStartedTick = 0;
     private IncomingMessage latestAction = null;
 
+    private final List<Consumer<MinecraftClient>> nextTickCallbacks = new ArrayList<>();
+
     @Override
     public void onInitializeClient() {
         ws = new AgentWebsocketServer("127.0.0.1", 8081);
         ws.start();
 
         ClientTickEvents.END_CLIENT_TICK.register(this::onTick);
+        ServerTickEvents.END_SERVER_TICK.register(this::killPlayersIfBelow0);
 
         disablePauseMenuWhenInBackground();
 
         logger.info("McMazeAgentStateExtractorModClient initialized successfully.");
+    }
+
+    private void killPlayersIfBelow0(final MinecraftServer server) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            if (player.isAlive() && !player.getGameMode().isCreative() && player.getY() < 0) {
+                // Kill player properly
+                player.damage(server.getOverworld(), player.getDamageSources().outOfWorld(), Float.MAX_VALUE);
+            }
+        }
     }
 
     private void disablePauseMenuWhenInBackground() {
@@ -44,6 +61,16 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
 
     private void onTick(final MinecraftClient client) {
         if (client.player == null || client.world == null) return;
+
+        this.runNextTickCallbacks(client);
+
+        if (client.player.isDead()) {
+            logger.info("Player is dead, respawning...");
+            client.player.requestRespawn();
+            actions.clear();
+            onNextTick(this::respondToDeath);
+            return;
+        }
 
         final IncomingMessage message = ws.consumeLatestAction();
         if (message == null) {
@@ -73,13 +100,34 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
         }
     }
 
+    public void respondToDeath(final MinecraftClient client) {
+        actions.clear();
+        final var stateMessage = buildStateMessage(client, latestAction, MessageType.STATE_AFTER_ACTION, true);
+        ws.broadcast(stateMessage.toJson());
+    }
+
+    private void onNextTick(final Consumer<MinecraftClient> callback) {
+        this.nextTickCallbacks.add(callback);
+    }
+
+    private void runNextTickCallbacks(final MinecraftClient client) {
+        for (Consumer<MinecraftClient> callback : nextTickCallbacks) {
+            try {
+                callback.accept(client);
+            } catch (Exception e) {
+                logger.warn("Failed to run next tick callback. {}", e.getMessage());
+            }
+        }
+        nextTickCallbacks.clear();
+    }
+
     private void onActionCompleted(final MinecraftClient client, final ActionMessage action) {
-        final StateMessage stateMessage = buildStateMessage(client, action, MessageType.STATE_AFTER_ACTION);
+        final StateMessage stateMessage = buildStateMessage(client, action, MessageType.STATE_AFTER_ACTION, false);
         ws.broadcast(stateMessage.toJson());
     }
 
     @SuppressWarnings("DataFlowIssue") // client.player and client.world have already been checked to be not null
-    private StateMessage buildStateMessage(final MinecraftClient client, final IncomingMessage message, final MessageType type) {
+    private StateMessage buildStateMessage(final MinecraftClient client, final IncomingMessage message, final MessageType type, final boolean died) {
         final PlayerState state = PlayerState.of(client);
 
         final long tick = client.world.getTime();
@@ -91,6 +139,7 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
                 .tickStart(latestActionsStartedTick)
                 .tickEnd(tick)
                 .playerState(state)
+                .died(died)
                 .build();
     }
 
@@ -101,7 +150,7 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
     }
 
     private void onResetCompleted(final MinecraftClient client, final ResetMessage reset) {
-        final StateMessage stateMessage = buildStateMessage(client, reset, MessageType.STATE_AFTER_RESET);
+        final StateMessage stateMessage = buildStateMessage(client, reset, MessageType.STATE_AFTER_RESET, false);
         ws.broadcast(stateMessage.toJson());
         logger.info("Reset completed and state sent to agent.");
     }

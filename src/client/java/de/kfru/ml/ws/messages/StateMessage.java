@@ -13,6 +13,7 @@ public class StateMessage {
     private static final Gson GSON = new Gson();
 
     private MessageType type;
+    private boolean died;
     private int episode;
     private int step;
     private long tickStart;
