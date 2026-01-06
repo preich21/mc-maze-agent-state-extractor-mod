@@ -25,8 +25,8 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
 
     private AgentWebsocketServer ws;
 
-    private long latestActionsStartedTick = 0;
-    private IncomingMessage latestAction = null;
+    private Long latestActionsStartedTick;
+    private IncomingMessage latestAction;
 
     private final List<Consumer<MinecraftClient>> nextTickCallbacks = new ArrayList<>();
 
@@ -104,6 +104,8 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
         actions.clear();
         final var stateMessage = buildStateMessage(client, latestAction, MessageType.STATE_AFTER_ACTION, true);
         ws.broadcast(stateMessage.toJson());
+        latestAction = null;
+        latestActionsStartedTick = null;
     }
 
     private void onNextTick(final Consumer<MinecraftClient> callback) {
@@ -131,6 +133,10 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
         final PlayerState state = PlayerState.of(client);
 
         final long tick = client.world.getTime();
+
+        if (latestActionsStartedTick == null) {
+            throw new IllegalStateException("Latest Action was cleared but something lead to building a StateMessage...");
+        }
 
         return StateMessage.builder()
                 .type(type)
