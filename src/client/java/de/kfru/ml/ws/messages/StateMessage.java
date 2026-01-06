@@ -27,7 +27,7 @@ public class StateMessage {
     private double pitch;
 
     private boolean died;
-    private String standingOn;
+    private int standingOn;
 
     private List<Double> fovDistances;
     private List<Integer> fovBlocks;
@@ -40,7 +40,7 @@ public class StateMessage {
             this.z = (int) state.position().z();
             this.yaw = state.facing().yaw();
             this.pitch = state.facing().pitch();
-            this.standingOn = state.standingOn().toString();
+            this.standingOn = state.standingOn().id;
             final FieldOfView fov = state.fieldOfView();
             this.fovDistances = fov.getDistances();
             this.fovBlocks = fov.getBlocks();
