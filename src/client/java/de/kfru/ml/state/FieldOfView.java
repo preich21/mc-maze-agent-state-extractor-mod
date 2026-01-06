@@ -17,10 +17,11 @@ public record FieldOfView(
         List<BlockInFOV> blocksInFOV
 ) {
 
-    private static final int GRID_SIZE = 5;
-    private static final double MAX_DISTANCE = 5.0;
-    private static final float YAW_STEP_DEG = 15.0f;
-    private static final float PITCH_STEP_DEG = 15.0f;
+    private static final int GRID_SIZE = 50;
+    private static final double MAX_DISTANCE = 50.0;
+
+    /** Total angular coverage (degrees) centered on the crosshair. */
+    private static final float FOV = 70f;
 
     public static FieldOfView of(final ClientPlayerEntity player, final ClientWorld world) {
         final List<BlockInFOV> blocksInFOV = computeBlocksInFOV(player, world);
@@ -40,11 +41,13 @@ public record FieldOfView(
     }
 
     private static BlockInFOV raycastBlockAtGridPosition(final int gridRow, final int gridCol, final ClientPlayerEntity player, final ClientWorld world) {
-        // We actually want to have the decimals cut off here
-        //noinspection IntegerDivisionInFloatingPointContext
-        final float yawOffset = (gridCol - (GRID_SIZE / 2)) * YAW_STEP_DEG;
-        //noinspection IntegerDivisionInFloatingPointContext
-        final float pitchOffset = (gridRow - (GRID_SIZE / 2)) * PITCH_STEP_DEG;
+        // Convert grid indices to normalized cell-center coordinates in [0..1].
+        // These are then mapped to symmetric angle offsets in degrees: [-FOV/2 .. +FOV/2].
+        final float colCenter01 = (gridCol + 0.5f) / GRID_SIZE; // 0..1
+        final float rowCenter01 = (gridRow + 0.5f) / GRID_SIZE; // 0..1
+
+        final float yawOffset = (colCenter01 - 0.5f) * FOV;
+        final float pitchOffset = (rowCenter01 - 0.5f) * FOV;
 
         final float yaw = player.getYaw() + yawOffset;
         final float pitch = player.getPitch() + pitchOffset;
