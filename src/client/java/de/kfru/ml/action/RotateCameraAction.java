@@ -7,8 +7,8 @@ import net.minecraft.util.math.MathHelper;
 @SuperBuilder
 public class RotateCameraAction extends PlayerAction {
 
-    private final float yawDeltaDegrees;
-    private final float pitchDeltaDegrees;
+    private final float yawDeltaDegrees; // horizontal rotation - 360° to left and right possible
+    private final float pitchDeltaDegrees; // vertical rotation - max 90° up and down
 
     @Override
     public boolean perform(final MinecraftClient client) {

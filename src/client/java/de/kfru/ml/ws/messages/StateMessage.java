@@ -23,8 +23,8 @@ public class StateMessage {
     private int y;
     private int z;
 
-    private double yaw;
-    private double pitch;
+    private double yaw; // horizontal rotation - 360° to left and right possible
+    private double pitch; // vertical rotation - max 90° up and down
 
     private boolean died;
     private int standingOn;
