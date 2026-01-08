@@ -7,6 +7,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.WorldProperties;
 
 public final class RespawnUtil {
   private RespawnUtil() {}
@@ -35,6 +36,18 @@ public final class RespawnUtil {
 
   public static Vec3d getPlayerRespawnClientBased(ClientWorld world) {
     return world.getSpawnPoint().getPos().toCenterPos();
+  }
+
+  public BlockPos getBlockPos(final int x, final int y, final int z) {
+    return new BlockPos(x, y, z);
+  }
+
+  public static void setSpawnPoint(final MinecraftClient client, final BlockPos startPoint) {
+    if (client == null || client.player == null) throw new IllegalArgumentException("client or client.player is null");
+
+    final MinecraftServer server = client.getServer();
+    final ServerWorld spawnWorld = server.getOverworld();
+    server.setSpawnPoint(WorldProperties.SpawnPoint.create(spawnWorld.getSpawnPoint().getDimension(), startPoint, 0, 0));
   }
 
 //  public static void teleportPlayerToRespawnSingleplayer(final MinecraftClient client) {

@@ -9,6 +9,7 @@ import lombok.Getter;
 public class ResetMessage extends IncomingMessage {
 
     private static final Gson GSON = new Gson();
+    private int startPointNonce;
 
     public static ResetMessage fromJson(final String json) {
         return GSON.fromJson(json, ResetMessage.class);

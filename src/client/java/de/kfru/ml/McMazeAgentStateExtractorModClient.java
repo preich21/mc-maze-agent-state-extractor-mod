@@ -87,10 +87,10 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
             }
         }
 
-        if (message instanceof ResetMessage) {
+        if (message instanceof ResetMessage resetMessage) {
             latestAction = message;
             latestActionsStartedTick = client.world.getTime();
-            onReset(client);
+            onReset(client, resetMessage);
         }
 
         if (message instanceof ActionMessage actionMessage) {
@@ -149,9 +149,9 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
                 .build();
     }
 
-    private void onReset(final MinecraftClient client) {
+    private void onReset(final MinecraftClient client, final ResetMessage message) {
         actions.clear();
-        PlayerReset.perform(client);
+        PlayerReset.perform(client, message.getStartPointNonce());
         logger.info("Reset executed.");
     }
 
