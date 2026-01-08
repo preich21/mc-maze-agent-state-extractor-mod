@@ -2,14 +2,14 @@
 	"schemaVersion": 1,
 	"id": "mc-maze-agent-state-extractor-mod",
 	"version": "${version}",
-	"name": "Agentic State Extractor",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Minecraft Maze Agent State Extractor Mod",
+	"description": "This mod enables a reinforcement learning agent to control Minecraft and receive a state representation of the players environment. It is intended to be used in a maze scenario.",
 	"authors": [
-		"Me!"
+		"Patrick Reich [patrickreich21@gmail.com]",
+		"Axel Herrmann [axel-herrmann@gmx.net]"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/preich21/mc-maze-agent-state-extractor-mod"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/mc-maze-agent-state-extractor-mod/icon.png",

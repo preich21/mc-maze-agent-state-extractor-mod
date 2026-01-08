@@ -2,15 +2,19 @@ package de.kfru.ml;
 
 import de.kfru.ml.action.PlayerActions;
 import de.kfru.ml.action.PlayerReset;
+import de.kfru.ml.communication.ResetMazePayload;
+import de.kfru.ml.communication.ResetSuccessfulPayload;
 import de.kfru.ml.state.PlayerState;
 import de.kfru.ml.ws.AgentWebsocketServer;
 import de.kfru.ml.ws.messages.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,10 +84,6 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
                     onActionCompleted(client, action);
                     latestAction = null;
                 }
-            } else if (latestAction instanceof ResetMessage reset) {
-                // resets take exactly one tick
-                onResetCompleted(client, reset);
-                latestAction = null;
             }
         }
 
@@ -151,13 +151,17 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
 
     private void onReset(final MinecraftClient client) {
         actions.clear();
-        PlayerReset.perform(client);
-        logger.info("Reset executed.");
+        ClientPlayNetworking.send(new ResetMazePayload(10, System.currentTimeMillis()));
+        ClientPlayNetworking.registerReceiver(ResetSuccessfulPayload.ID, (payload, context) -> {
+            logger.info("Received Reset Successful Payload from server.");
+            onNextTick(c -> onResetCompleted(c, (ResetMessage) latestAction));
+        });
     }
 
     private void onResetCompleted(final MinecraftClient client, final ResetMessage reset) {
         final StateMessage stateMessage = buildStateMessage(client, reset, MessageType.STATE_AFTER_RESET, false);
         ws.broadcast(stateMessage.toJson());
+        ClientPlayNetworking.unregisterReceiver(Identifier.of(ResetSuccessfulPayload.ID.toString())); // TODO: check whether this works
         logger.info("Reset completed and state sent to agent.");
     }
 }
