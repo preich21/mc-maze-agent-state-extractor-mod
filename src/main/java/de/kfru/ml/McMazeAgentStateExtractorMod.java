@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,11 +37,15 @@ public class McMazeAgentStateExtractorMod implements ModInitializer {
         ServerPlayNetworking.registerGlobalReceiver(ResetMazePayload.ID, (payload, context) -> {
             logger.info("Received RESET packet from player.");
 
-            try (final MinecraftServer server = context.server()) {
-                server.execute(() -> {
+            @SuppressWarnings("resource") // if we autoclose the server it will shut down
+            final MinecraftServer server = context.server();
+            server.execute(() -> {
+                try {
                     onReset(payload, context);
-                });
-            }
+                } catch (final Throwable e) {
+                    logger.error("Error during RESET:", e);
+                }
+            });
         });
 
         logger.info("Initialized McMazeAgentStateExtractorMod successfully.");
@@ -49,8 +54,9 @@ public class McMazeAgentStateExtractorMod implements ModInitializer {
     private void onReset(final ResetMazePayload payload, final ServerPlayNetworking.Context context) {
         final ServerWorld world = context.player().getEntityWorld();
         final Maze maze = mazeGenerator.getMaze(payload.size());
-//		mazePlacer.placeMazeInWorld(maze, world);
         logger.info(maze.toString());
-//		ServerPlayNetworking.send(new ResetSuccessfulPayload());
+		mazePlacer.placeMazeInWorld(world, new BlockPos(0, 0, 0), 0, 3, maze);
+		ServerPlayNetworking.send(context.player(), new ResetSuccessfulPayload());
+        logger.info("Reset successful.");
     }
 }

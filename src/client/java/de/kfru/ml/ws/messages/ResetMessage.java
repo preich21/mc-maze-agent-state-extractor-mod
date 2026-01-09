@@ -8,6 +8,9 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ResetMessage extends IncomingMessage {
 
+    private boolean mazeGeneration;
+    private Integer mazeSize;
+
     private static final Gson GSON = new Gson();
 
     public static ResetMessage fromJson(final String json) {

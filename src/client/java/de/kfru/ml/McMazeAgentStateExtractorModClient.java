@@ -47,6 +47,7 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
         logger.info("McMazeAgentStateExtractorModClient initialized successfully.");
     }
 
+    @SuppressWarnings("DataFlowIssue") // client.player has already been checked to be not null
     private void killPlayersIfBelow0(final MinecraftServer server) {
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             if (player.isAlive() && !player.getGameMode().isCreative() && player.getY() < 0) {
@@ -87,10 +88,10 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
             }
         }
 
-        if (message instanceof ResetMessage) {
-            latestAction = message;
+        if (message instanceof ResetMessage resetMessage) {
+            latestAction = resetMessage;
             latestActionsStartedTick = client.world.getTime();
-            onReset(client);
+            onReset(client, resetMessage);
         }
 
         if (message instanceof ActionMessage actionMessage) {
@@ -149,19 +150,25 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
                 .build();
     }
 
-    private void onReset(final MinecraftClient client) {
+    private void onReset(final MinecraftClient client, final ResetMessage message) {
         actions.clear();
-        ClientPlayNetworking.send(new ResetMazePayload(10, System.currentTimeMillis()));
-        ClientPlayNetworking.registerReceiver(ResetSuccessfulPayload.ID, (payload, context) -> {
-            logger.info("Received Reset Successful Payload from server.");
-            onNextTick(c -> onResetCompleted(c, (ResetMessage) latestAction));
-        });
+        PlayerReset.perform(client);
+
+        if (message.isMazeGeneration()) {
+            ClientPlayNetworking.send(new ResetMazePayload(message.getMazeSize(), System.currentTimeMillis()));
+            ClientPlayNetworking.registerReceiver(ResetSuccessfulPayload.ID, (payload, context) -> {
+                logger.info("Received Reset Successful Payload from server.");
+                onNextTick(c -> onResetCompleted(c, (ResetMessage) latestAction));
+            });
+        } else {
+            onNextTick(c -> onResetCompleted(c, message));
+        }
     }
 
     private void onResetCompleted(final MinecraftClient client, final ResetMessage reset) {
         final StateMessage stateMessage = buildStateMessage(client, reset, MessageType.STATE_AFTER_RESET, false);
         ws.broadcast(stateMessage.toJson());
-        ClientPlayNetworking.unregisterReceiver(Identifier.of(ResetSuccessfulPayload.ID.toString())); // TODO: check whether this works
+        ClientPlayNetworking.unregisterReceiver(Identifier.of(ResetSuccessfulPayload.ID.toString()));
         logger.info("Reset completed and state sent to agent.");
     }
 }

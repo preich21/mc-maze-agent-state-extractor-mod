@@ -31,7 +31,7 @@ public record Maze(
     }
 
     @SuppressWarnings("PointlessArithmeticExpression")
-    private boolean[][] toBlockGrid() {
+    public boolean[][] toBlockGrid() {
 
         int sizeX = walls.length;
         int sizeZ = walls[0].length;

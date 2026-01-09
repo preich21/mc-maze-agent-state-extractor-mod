@@ -21,7 +21,7 @@ public class MazeGenerator {
     public Maze getMaze(final int size) {
         try {
             final Maze maze = preGeneratedMaze.get();
-            if (maze == null) {;
+            if (maze == null) {
                 return generateMaze(size, System.currentTimeMillis());
             }
             return maze;
