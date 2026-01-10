@@ -7,7 +7,6 @@ import net.minecraft.entity.EntityPose;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerReset {
@@ -15,7 +14,7 @@ public class PlayerReset {
 //    private static List<Integer> startPoints = new ArrayList<>();
 
     @SuppressWarnings("DataFlowIssue") // client.player is never null when this method is called
-    public static void perform(final MinecraftClient client, final int startPointNonce) {
+    public static void perform(final MinecraftClient client, final long startPointNonce) {
         final StartPointsData startPoints = StartPointsData.getSavedBlockData(client.getServer());
         final StartPointsData.StartPoint startPoint = PlayerReset.pickStartPoint(startPoints.getStartPoints(), startPointNonce);
 //        Vec3d spawnPos = RespawnUtil.getPlayerRespawnPosSingleplayer(client);
@@ -39,7 +38,7 @@ public class PlayerReset {
         client.player.getInventory().setSelectedSlot(0);
     }
 
-    public static StartPointsData.StartPoint pickStartPoint(final List<StartPointsData.StartPoint> startPoints, int startPointNonce) {
+    public static StartPointsData.StartPoint pickStartPoint(final List<StartPointsData.StartPoint> startPoints, long startPointNonce) {
         if (startPoints == null || startPoints.isEmpty()) {
             throw new IllegalStateException("startPoints is empty");
         }

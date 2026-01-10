@@ -5,10 +5,14 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import lombok.Getter;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.PersistentState;
+import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.PersistentStateType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * See: https://docs.fabricmc.net/develop/saved-data
@@ -16,10 +20,6 @@ import java.util.List;
  */
 @Getter
 public class StartPointsData extends PersistentState {
-
-  // TODO: this data needs to be initialized in the world.
-  // best option would be to add a player command with which the player in the world can add start points:
-  // similar to /spawnpoint but for our custom data structure e.g. "/startpoint"
 
   public static final Codec<StartPoint> START_POINT_CODEC =
       RecordCodecBuilder.create(instance -> instance.group(
@@ -41,17 +41,19 @@ public class StartPointsData extends PersistentState {
 
   private final List<StartPoint> startPoints;
 
-
   public StartPointsData() {
-    startPoints = new ArrayList<>();
+    this.startPoints = new ArrayList<>();
   }
 
   public StartPointsData(List<StartPoint> startPoints) {
-    this.startPoints = startPoints;
+    this.startPoints = new ArrayList<>(startPoints);
   }
 
-
   public record StartPoint(int x, int y, int z) {
+    @Override
+    public @NotNull String toString() {
+      return "x=" + x + ", y=" + y + ", z=" + z;
+    }
   }
 
   public void addStartPoint(StartPoint point) {
@@ -64,6 +66,10 @@ public class StartPointsData extends PersistentState {
     setDirty(true);
   }
 
+  public List<StartPoint> getStartPoints() {
+    return Collections.unmodifiableList(startPoints);
+  }
+
   public void setStartPoints(List<StartPoint> points) {
     startPoints.clear();
     startPoints.addAll(points);
@@ -71,10 +77,13 @@ public class StartPointsData extends PersistentState {
   }
 
   public static StartPointsData getSavedBlockData(MinecraftServer server) {
-    StartPointsData startPointsData = server.getOverworld().getPersistentStateManager().get(TYPE);
-    return startPointsData;
+    if (server == null || server.getOverworld() == null) return null;
+    PersistentStateManager manager = server.getOverworld().getPersistentStateManager();
+    return manager.getOrCreate(TYPE);
   }
 
+  @Override
+  public String toString() {
+    return this.startPoints.stream().map(StartPoint::toString).collect(Collectors.joining("\n"));
+  }
 }
-
-
