@@ -1,15 +1,18 @@
 package de.kfru.ml.ws;
 
-import de.kfru.ml.ws.messages.ActionMessage;
-import de.kfru.ml.ws.messages.IncomingMessage;
-import de.kfru.ml.ws.messages.MessageType;
-import de.kfru.ml.ws.messages.ResetMessage;
+import de.kfru.ml.util.StartPointsData;
+import de.kfru.ml.ws.messages.*;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientWorld;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class AgentWebsocketServer extends WebSocketServer {
@@ -18,10 +21,20 @@ public class AgentWebsocketServer extends WebSocketServer {
 
     private final AtomicReference<IncomingMessage> latestAction = new AtomicReference<>();
 
+    private List<StartPointsData.StartPoint> startPoints = new ArrayList<>();
+
     public AgentWebsocketServer(final String host, final int port) {
         super(new java.net.InetSocketAddress(host, port));
         setReuseAddr(true);
         setTcpNoDelay(true);
+    }
+
+    public void onWorldChange(MinecraftClient client, ClientWorld world) {
+        logger.info("World changed to, pulling saved start points.");
+        StartPointsData savedBlockData = StartPointsData.getSavedBlockData(client.getServer());
+        if (savedBlockData != null) {
+            this.startPoints = savedBlockData.getStartPoints();
+        }
     }
 
     public IncomingMessage consumeLatestAction() {
@@ -31,7 +44,8 @@ public class AgentWebsocketServer extends WebSocketServer {
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         logger.info("WebSocket connection opened from [{}]", conn.getRemoteSocketAddress());
-        conn.send("{\"type\": \"hello\", \"role\": \"minecraft\"}");
+        String message = HelloMessage.builder().startPoints(startPoints).build().toJson();
+        conn.send(message);
     }
 
     @Override

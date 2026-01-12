@@ -1,53 +1,30 @@
 package de.kfru.ml.util;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.WorldProperties;
 
 public final class RespawnUtil {
   private RespawnUtil() {}
 
-  public static Vec3d getPlayerRespawnPosSingleplayer(final MinecraftClient client) {
-    if (client == null || client.player == null) return Vec3d.ZERO;
-
+  public static WorldProperties.SpawnPoint getPlayerRespawn(final MinecraftClient client) {
     final MinecraftServer server = client.getServer();
-    if (server == null) return getPlayerRespawnClientBased(client.world);
-
     final ServerPlayerEntity sp = server.getPlayerManager().getPlayer(client.player.getUuid());
-    if (sp == null) return getPlayerRespawnClientBased(client.world);
-
-    final ServerWorld spawnWorld = server.getOverworld();
-    if (spawnWorld == null) return getPlayerRespawnClientBased(client.world);
-
-    final BlockPos spawnPos = sp.getRespawn().respawnData().getPos();
-    if (spawnPos != null) {
-      // Player-specific spawn (bed/anchor position as stored on the server).
-      return spawnPos.toCenterPos();
-    }
-
-    // Fallback: world spawn (not player-specific).
-    return spawnWorld.getSpawnPoint().getPos().toCenterPos();
+    return sp.getRespawn().respawnData();
   }
 
-  public static Vec3d getPlayerRespawnClientBased(ClientWorld world) {
-    return world.getSpawnPoint().getPos().toCenterPos();
-  }
-
-  public BlockPos getBlockPos(final int x, final int y, final int z) {
-    return new BlockPos(x, y, z);
-  }
-
-  public static void setSpawnPoint(final MinecraftClient client, final BlockPos startPoint) {
+  public static void setSpawnPoint(final MinecraftClient client, final BlockPos startPointPos, final float yaw, final float pitch) {
     if (client == null || client.player == null) throw new IllegalArgumentException("client or client.player is null");
 
     final MinecraftServer server = client.getServer();
     final ServerWorld spawnWorld = server.getOverworld();
-    server.setSpawnPoint(WorldProperties.SpawnPoint.create(spawnWorld.getSpawnPoint().getDimension(), startPoint, 0, 0));
+    final ServerPlayerEntity sp = server.getPlayerManager().getPlayer(client.player.getUuid());
+    final WorldProperties.SpawnPoint spawnPoint = new WorldProperties.SpawnPoint(new GlobalPos(spawnWorld.getSpawnPoint().getDimension(), startPointPos), yaw, pitch);
+    sp.setSpawnPoint(new ServerPlayerEntity.Respawn(spawnPoint, true), true);
   }
 
 //  public static void teleportPlayerToRespawnSingleplayer(final MinecraftClient client) {

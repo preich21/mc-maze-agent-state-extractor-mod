@@ -7,10 +7,12 @@ import de.kfru.ml.ws.AgentWebsocketServer;
 import de.kfru.ml.ws.messages.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +39,7 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
 
         ClientTickEvents.END_CLIENT_TICK.register(this::onTick);
         ServerTickEvents.END_SERVER_TICK.register(this::killPlayersIfBelow0);
+        ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register(ws::onWorldChange);
 
         disablePauseMenuWhenInBackground();
 
@@ -151,7 +154,8 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
 
     private void onReset(final MinecraftClient client, final ResetMessage message) {
         actions.clear();
-        PlayerReset.perform(client, message.getStartPointNonce());
+        PlayerReset.perform(client, message.getStartPoint());
+        client.player.sendMessage(Text.of("Starting episode " + message.getEpisode() + ". Resetting player to start point at " + message.getStartPoint()), false);
         logger.info("Reset executed.");
     }
 

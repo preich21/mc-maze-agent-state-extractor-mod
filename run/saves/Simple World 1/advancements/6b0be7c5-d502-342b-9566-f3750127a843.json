@@ -11,5 +11,17 @@
     },
     "done": false
   },
+  "minecraft:recipes/misc/diamond": {
+    "criteria": {
+      "has_diamond_block": "2026-01-11 18:55:09 +0100"
+    },
+    "done": true
+  },
+  "minecraft:recipes/redstone/redstone": {
+    "criteria": {
+      "has_redstone_block": "2026-01-11 18:55:09 +0100"
+    },
+    "done": true
+  },
   "DataVersion": 4671
 }

@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -23,9 +24,13 @@ public class StartPointsData extends PersistentState {
 
   public static final Codec<StartPoint> START_POINT_CODEC =
       RecordCodecBuilder.create(instance -> instance.group(
+//          Codec.STRING.fieldOf("id").forGetter(startPoint -> startPoint.id.toString()),
+          Codec.FLOAT.fieldOf("weight").forGetter(StartPoint::weight),
           Codec.INT.fieldOf("x").forGetter(StartPoint::x),
           Codec.INT.fieldOf("y").forGetter(StartPoint::y),
-          Codec.INT.fieldOf("z").forGetter(StartPoint::z)
+          Codec.INT.fieldOf("z").forGetter(StartPoint::z),
+          Codec.FLOAT.fieldOf("yaw").forGetter(StartPoint::yaw),
+          Codec.FLOAT.fieldOf("pitch").forGetter(StartPoint::pitch)
       ).apply(instance, StartPoint::new));
 
   public static final Codec<StartPointsData> CODEC =
@@ -49,7 +54,12 @@ public class StartPointsData extends PersistentState {
     this.startPoints = new ArrayList<>(startPoints);
   }
 
-  public record StartPoint(int x, int y, int z) {
+  public record StartPoint(UUID id, float weight, int x, int y, int z, float yaw, float pitch) {
+
+    public StartPoint(float weight, int x, int y, int z, float yaw, float pitch) {
+      this(UUID.randomUUID(), weight, x, y, z, yaw, pitch);
+    }
+
     @Override
     public @NotNull String toString() {
       return "x=" + x + ", y=" + y + ", z=" + z;

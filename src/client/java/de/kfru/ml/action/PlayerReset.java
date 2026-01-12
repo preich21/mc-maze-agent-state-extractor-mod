@@ -6,22 +6,30 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.WorldProperties;
 
 import java.util.List;
 
 public class PlayerReset {
 
-//    private static List<Integer> startPoints = new ArrayList<>();
-
     @SuppressWarnings("DataFlowIssue") // client.player is never null when this method is called
-    public static void perform(final MinecraftClient client, final long startPointNonce) {
-        final StartPointsData startPoints = StartPointsData.getSavedBlockData(client.getServer());
-        final StartPointsData.StartPoint startPoint = PlayerReset.pickStartPoint(startPoints.getStartPoints(), startPointNonce);
-//        Vec3d spawnPos = RespawnUtil.getPlayerRespawnPosSingleplayer(client);
-        BlockPos spawnPoint = new BlockPos(startPoint.x(), startPoint.y(), startPoint.z());
-        RespawnUtil.setSpawnPoint(client, spawnPoint);
+    public static void perform(final MinecraftClient client, final StartPointsData.StartPoint startPoint) {
+        BlockPos spawnPoint;
+        float yaw;
+        float pitch;
+        if (startPoint != null) {
+            yaw = startPoint.yaw();
+            pitch = startPoint.pitch();
+            spawnPoint = new BlockPos(startPoint.x(), startPoint.y(), startPoint.z());
+            RespawnUtil.setSpawnPoint(client, spawnPoint, yaw, pitch);
+        } else {
+            final WorldProperties.SpawnPoint sp = RespawnUtil.getPlayerRespawn(client);
+            spawnPoint = sp.getPos();
+            yaw = sp.yaw();
+            pitch = sp.pitch();
+        }
 
-        client.player.refreshPositionAndAngles(spawnPoint, 0.0F, 0.0F);
+        client.player.refreshPositionAndAngles(spawnPoint, yaw, pitch);
         client.player.setVelocity(Vec3d.ZERO);
         client.player.getAbilities().flying = false;
         client.player.setSprinting(false);

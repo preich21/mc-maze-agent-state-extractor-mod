@@ -1,8 +1,10 @@
 package de.kfru.ml.commands;
 
+import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import de.kfru.ml.util.StartPointsData;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -10,16 +12,22 @@ import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 public class AddStartPoint extends AbstractCommandHandler {
 
   public static final Logger LOGGER = LoggerFactory.getLogger("AddStartPointCommand");
 
+  private static final String ARG_WEIGHT = "weight";
+
   public AddStartPoint() {
-    super("startpoint");
+    super("startpoint", List.of(CommandManager.argument(ARG_WEIGHT, FloatArgumentType.floatArg())));
   }
 
   @Override
   public int handle(final CommandContext<ServerCommandSource> context) {
+    final Float weight = this.getArgumentValue(context, ARG_WEIGHT, FloatArgumentType::getFloat, false);
+
     final ServerCommandSource source = context.getSource();
     final ServerPlayerEntity player;
     try {
@@ -42,9 +50,9 @@ public class AddStartPoint extends AbstractCommandHandler {
       return 0;
     }
 
-    data.addStartPoint(new StartPointsData.StartPoint(pos.getX(), pos.getY(), pos.getZ()));
-    source.sendFeedback(() -> Text.literal("Saved start point at " + pos.toShortString()), true);
-    LOGGER.info("Saved start point {} for player {}", pos.toShortString(), player.getName().getString());
+    data.addStartPoint(new StartPointsData.StartPoint(weight, pos.getX(), pos.getY(), pos.getZ(), player.getYaw(), player.getPitch()));
+    source.sendFeedback(() -> Text.literal("Saved start point at " + pos.toShortString() + " (weight=" + weight + ")"), true);
+    LOGGER.info("Saved start point {} (weight={}) for player {}", pos.toShortString(), weight, player.getName().getString());
     return 1;
   }
 }

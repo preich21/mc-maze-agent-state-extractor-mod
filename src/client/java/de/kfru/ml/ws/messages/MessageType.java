@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 public enum MessageType {
+    HELLO,
     ACTION_REQUEST,
     RESET_REQUEST,
     STATE_AFTER_RESET,

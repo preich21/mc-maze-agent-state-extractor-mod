@@ -1,7 +1,5 @@
 package de.kfru.ml.ws.messages;
 
-import com.google.gson.Gson;
-import de.kfru.ml.state.BlockType;
 import de.kfru.ml.state.FieldOfView;
 import de.kfru.ml.state.PlayerState;
 import lombok.Builder;
@@ -9,9 +7,7 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder(builderClassName = "StateMessageBuilder")
-public class StateMessage {
-
-    private static final Gson GSON = new Gson();
+public class StateMessage extends OutgoingMessage {
 
     private MessageType type;
     private int episode;
@@ -47,9 +43,5 @@ public class StateMessage {
 //            System.out.println("FOV blocks contains goal: " + this.fovBlocks.contains(BlockType.GOAL_BLOCK.id));
             return this;
         }
-    }
-
-    public String toJson() {
-        return GSON.toJson(this);
     }
 }
