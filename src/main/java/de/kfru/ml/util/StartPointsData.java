@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import lombok.Getter;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.PersistentStateType;
@@ -58,6 +59,10 @@ public class StartPointsData extends PersistentState {
 
     public StartPoint(float weight, int x, int y, int z, float yaw, float pitch) {
       this(UUID.randomUUID(), weight, x, y, z, yaw, pitch);
+    }
+
+    public BlockPos toBlockPos() {
+      return new BlockPos(x, y, z);
     }
 
     @Override

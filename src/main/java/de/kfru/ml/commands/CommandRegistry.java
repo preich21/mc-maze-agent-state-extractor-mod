@@ -12,7 +12,8 @@ public class CommandRegistry {
   public static List<AbstractCommandHandler> commandHandlers = List.of(
       new AddStartPoint(),
       new GetStartPoints(),
-      new ClearStartPoints()
+      new ClearStartPoints(),
+      new NextStartPoint()
   );
 
   public static void registerCommandHandlers(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {

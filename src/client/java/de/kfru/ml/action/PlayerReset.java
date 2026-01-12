@@ -20,7 +20,7 @@ public class PlayerReset {
         if (startPoint != null) {
             yaw = startPoint.yaw();
             pitch = startPoint.pitch();
-            spawnPoint = new BlockPos(startPoint.x(), startPoint.y(), startPoint.z());
+            spawnPoint = startPoint.toBlockPos();
             RespawnUtil.setSpawnPoint(client, spawnPoint, yaw, pitch);
         } else {
             final WorldProperties.SpawnPoint sp = RespawnUtil.getPlayerRespawn(client);
