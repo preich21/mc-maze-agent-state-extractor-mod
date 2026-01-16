@@ -10,10 +10,7 @@ import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.PersistentStateType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -67,12 +64,21 @@ public class StartPointsData extends PersistentState {
 
     @Override
     public @NotNull String toString() {
-      return "x=" + x + ", y=" + y + ", z=" + z;
+      return "x=" + x + ", y=" + y + ", z=" + z + "(weight " + weight + ")";
     }
   }
 
   public void addStartPoint(StartPoint point) {
     startPoints.add(point);
+    setDirty(true);
+  }
+
+  public void updateStartPoint(StartPoint point) {
+    Optional<StartPoint> existingPoint = startPoints.stream().filter(p -> p.x == point.x && p.y == point.y && p.z == point.z).findFirst();
+    if (existingPoint.isEmpty()) {
+      throw new IllegalArgumentException("No start point found at position x=" + point.x + ", y=" + point.y + ", z=" + point.z);
+    }
+    startPoints.set(startPoints.indexOf(existingPoint.get()), point);
     setDirty(true);
   }
 
@@ -83,6 +89,10 @@ public class StartPointsData extends PersistentState {
 
   public List<StartPoint> getStartPoints() {
     return Collections.unmodifiableList(startPoints);
+  }
+
+  public boolean containsStartPoint(int x, int y, int z) {
+    return startPoints.stream().anyMatch(p -> p.x == x && p.y == y && p.z == z);
   }
 
   public void setStartPoints(List<StartPoint> points) {

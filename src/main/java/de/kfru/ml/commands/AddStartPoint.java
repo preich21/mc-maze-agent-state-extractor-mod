@@ -50,9 +50,16 @@ public class AddStartPoint extends AbstractCommandHandler {
       return 0;
     }
 
-    data.addStartPoint(new StartPointsData.StartPoint(weight, pos.getX(), pos.getY(), pos.getZ(), player.getYaw(), player.getPitch()));
-    source.sendFeedback(() -> Text.literal("Saved start point at " + pos.toShortString() + " (weight=" + weight + ")"), true);
-    LOGGER.info("Saved start point {} (weight={}) for player {}", pos.toShortString(), weight, player.getName().getString());
+    final StartPointsData.StartPoint startPoint = new StartPointsData.StartPoint(weight, pos.getX(), pos.getY(), pos.getZ(), player.getYaw(), player.getPitch());
+    if (data.containsStartPoint(pos.getX(), pos.getY(), pos.getZ())) {
+      data.updateStartPoint(startPoint);
+      source.sendFeedback(() -> Text.literal("Updated start point at " + pos.toShortString() + " (weight=" + weight + ")"), true);
+      LOGGER.info("Updated start point {} (weight={}) for player {}", pos.toShortString(), weight, player.getName().getString());
+    } else {
+      data.addStartPoint(startPoint);
+      source.sendFeedback(() -> Text.literal("Saved start point at " + pos.toShortString() + " (weight=" + weight + ")"), true);
+      LOGGER.info("Saved start point {} (weight={}) for player {}", pos.toShortString(), weight, player.getName().getString());
+    }
     return 1;
   }
 }
