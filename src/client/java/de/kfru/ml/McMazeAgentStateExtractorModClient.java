@@ -129,8 +129,12 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
         ws.broadcast(stateMessage.toJson());
     }
 
-    @SuppressWarnings("DataFlowIssue") // client.player and client.world have already been checked to be not null
     private StateMessage buildStateMessage(final MinecraftClient client, final IncomingMessage message, final MessageType type, final boolean died) {
+        return buildStateMessage(client,message, type, died, null);
+    }
+
+    @SuppressWarnings("DataFlowIssue") // client.player and client.world have already been checked to be not null
+    private StateMessage buildStateMessage(final MinecraftClient client, final IncomingMessage message, final MessageType type, final boolean died, final boolean[][] mazeWalls) {
         final PlayerState state = PlayerState.of(client);
 
         final long tick = client.world.getTime();
@@ -147,6 +151,7 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
                 .tickEnd(tick)
                 .playerState(state)
                 .died(died)
+                .maze(mazeWalls)
                 .build();
     }
 
@@ -155,18 +160,18 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
         PlayerReset.perform(client);
 
         if (message.isMazeGeneration()) {
-            ClientPlayNetworking.send(new ResetMazePayload(message.getMazeSize(), System.currentTimeMillis()));
+            ClientPlayNetworking.send(new ResetMazePayload(message.getMazeSize(), message.getSeed() != null ? message.getSeed() : System.currentTimeMillis()));
             ClientPlayNetworking.registerReceiver(ResetSuccessfulPayload.ID, (payload, context) -> {
                 logger.info("Received Reset Successful Payload from server.");
-                onNextTick(c -> onResetCompleted(c, (ResetMessage) latestAction));
+                onNextTick(c -> onResetCompleted(c, (ResetMessage) latestAction, payload.mazeWalls()));
             });
         } else {
-            onNextTick(c -> onResetCompleted(c, message));
+            onNextTick(c -> onResetCompleted(c, message, null));
         }
     }
 
-    private void onResetCompleted(final MinecraftClient client, final ResetMessage reset) {
-        final StateMessage stateMessage = buildStateMessage(client, reset, MessageType.STATE_AFTER_RESET, false);
+    private void onResetCompleted(final MinecraftClient client, final ResetMessage reset, final boolean[][] mazeWalls) {
+        final StateMessage stateMessage = buildStateMessage(client, reset, MessageType.STATE_AFTER_RESET, false, mazeWalls);
         ws.broadcast(stateMessage.toJson());
         ClientPlayNetworking.unregisterReceiver(Identifier.of(ResetSuccessfulPayload.ID.toString()));
         logger.info("Reset completed and state sent to agent.");

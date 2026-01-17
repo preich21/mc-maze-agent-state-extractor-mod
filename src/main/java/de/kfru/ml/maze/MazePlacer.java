@@ -18,7 +18,7 @@ public final class MazePlacer {
     private final BlockState startBlock = Blocks.REDSTONE_BLOCK.getDefaultState();
     private final BlockState endBlock = Blocks.DIAMOND_BLOCK.getDefaultState();
 
-    public void placeMazeInWorld(final ServerWorld world, final BlockPos origin, final int yFloor, final int wallHeight, final Maze maze) {
+    public boolean[][] placeMazeInWorld(final ServerWorld world, final BlockPos origin, final int yFloor, final int wallHeight, final Maze maze) {
         boolean[][] grid = maze.toBlockGrid();
 
         int w = grid.length;
@@ -83,5 +83,7 @@ public final class MazePlacer {
         world.setBlockState(endPos, endBlock, flags);
 
         last = grid;
+
+        return grid;
     }
 }

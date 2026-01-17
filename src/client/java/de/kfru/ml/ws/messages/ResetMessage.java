@@ -8,6 +8,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ResetMessage extends IncomingMessage {
 
+    private Long seed;
     private boolean mazeGeneration;
     private Integer mazeSize;
 

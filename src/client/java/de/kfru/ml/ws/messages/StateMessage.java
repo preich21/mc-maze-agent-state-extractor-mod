@@ -1,7 +1,6 @@
 package de.kfru.ml.ws.messages;
 
 import com.google.gson.Gson;
-import de.kfru.ml.state.BlockType;
 import de.kfru.ml.state.FieldOfView;
 import de.kfru.ml.state.PlayerState;
 import lombok.Builder;
@@ -32,6 +31,8 @@ public class StateMessage {
     private List<Double> fovDistances;
     private List<Integer> fovBlocks;
 
+    private boolean[][] maze; // only in STATE_AFTER_RESET messages
+
     @SuppressWarnings("unused")
     public static class StateMessageBuilder {
         public StateMessageBuilder playerState(final PlayerState state) {
@@ -44,7 +45,6 @@ public class StateMessage {
             final FieldOfView fov = state.fieldOfView();
             this.fovDistances = fov.getDistances();
             this.fovBlocks = fov.getBlocks();
-//            System.out.println("FOV blocks contains goal: " + this.fovBlocks.contains(BlockType.GOAL_BLOCK.id));
             return this;
         }
     }

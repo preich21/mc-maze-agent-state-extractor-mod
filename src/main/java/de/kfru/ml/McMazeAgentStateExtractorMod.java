@@ -55,8 +55,8 @@ public class McMazeAgentStateExtractorMod implements ModInitializer {
         final ServerWorld world = context.player().getEntityWorld();
         final Maze maze = mazeGenerator.getMaze(payload.size());
         logger.info(maze.toString());
-		mazePlacer.placeMazeInWorld(world, new BlockPos(0, 0, 0), 0, 3, maze);
-		ServerPlayNetworking.send(context.player(), new ResetSuccessfulPayload());
+        final boolean[][] mazeWalls = mazePlacer.placeMazeInWorld(world, new BlockPos(0, 0, 0), 0, 3, maze);
+        ServerPlayNetworking.send(context.player(), new ResetSuccessfulPayload(mazeWalls));
         logger.info("Reset successful.");
     }
 }

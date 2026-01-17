@@ -12,7 +12,7 @@ Content-Type: application/json // used only for IDE highlighting.
 === wait-for-server
 {"type": "ACTION_REQUEST", "episode": 1, "step": 2, "applyForTicks": 60, "moveForward": 1, "moveSidewards": 0, "jump": false, "yawDelta": 0.0, "pitchDelta": 0.0}
 === wait-for-server
-{"type": "RESET_REQUEST", "episode": 1, "step": 0, "mazeGeneration": true, "mazeSize": 5}
+{"type": "RESET_REQUEST", "episode": 1, "step": 0, "seed": 0, "mazeGeneration": true, "mazeSize": 5}
 === wait-for-server
 
 

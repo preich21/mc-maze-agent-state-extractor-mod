@@ -33,6 +33,15 @@ public record Maze(
     @SuppressWarnings("PointlessArithmeticExpression")
     public boolean[][] toBlockGrid() {
 
+        if (size == 1) {
+            return new boolean[][]{
+                    {true, true, true, true},
+                    {true, false, false, true},
+                    {true, false, false, true},
+                    {true, true, true, true}
+            };
+        }
+
         int sizeX = walls.length;
         int sizeZ = walls[0].length;
 
