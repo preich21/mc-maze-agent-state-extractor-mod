@@ -31,15 +31,21 @@ public class NextStartPoint extends AbstractCommandHandler {
     }
     final List<StartPointsData.StartPoint> startPoints = StartPointsData.getSavedBlockData(server).getStartPoints();
     final ServerPlayerEntity player = server.getPlayerManager().getPlayer(source.getPlayer().getUuid());
-    BlockPos pos = player.getRespawn().respawnData().getPos();
-    Optional<StartPointsData.StartPoint> current = startPoints.stream().filter(startPoint -> startPoint.x() == pos.getX() && startPoint.y() == pos.getY() && startPoint.z() == pos.getZ()).findFirst();
 
+    ServerPlayerEntity.Respawn respawn = player.getRespawn();
     int nextPointIndex = 0;
-    if (current.isPresent()) {
-      nextPointIndex = (startPoints.indexOf(current.get()) + 1) % startPoints.size();
+    if (respawn != null) {
+      BlockPos pos = respawn.respawnData().getPos();
+      Optional<StartPointsData.StartPoint> current = startPoints.stream().filter(startPoint -> startPoint.x() == pos.getX() && startPoint.y() == pos.getY() && startPoint.z() == pos.getZ()).findFirst();
+      if (current.isPresent()) {
+        nextPointIndex = (startPoints.indexOf(current.get()) + 1) % startPoints.size();
+      } else {
+        source.sendFeedback(() -> Text.literal("Couldn't find current start point, starting at 0"), true);
+      }
     } else {
       source.sendFeedback(() -> Text.literal("Couldn't find current start point, starting at 0"), true);
     }
+
     final StartPointsData.StartPoint newStartPoint = startPoints.get(nextPointIndex);
     final WorldProperties.SpawnPoint spawnPoint = new WorldProperties.SpawnPoint(new GlobalPos(world.getRegistryKey(), newStartPoint.toBlockPos()), newStartPoint.yaw(), newStartPoint.pitch());
     player.setSpawnPoint(new ServerPlayerEntity.Respawn(spawnPoint, true), true);

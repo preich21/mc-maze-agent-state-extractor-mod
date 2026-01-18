@@ -70,8 +70,15 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
         if (client.player.isDead()) {
             logger.info("Player is dead, respawning...");
             client.player.requestRespawn();
+            if (latestAction == null) {
+                logger.warn("Player is dead but no latest action is recorded.");
+                return; // no action was performed, so no need to send state
+            }
+            final var stateMessage = buildStateMessage(client, latestAction, MessageType.STATE_AFTER_ACTION, true);
+            ws.broadcast(stateMessage.toJson());
             actions.clear();
-            onNextTick(this::respondToDeath);
+            latestAction = null;
+            latestActionsStartedTick = null;
             return;
         }
 
@@ -101,14 +108,6 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
             latestActionsStartedTick = client.world.getTime();
             actions.perform(actionMessage.toPlayerActions(), client);
         }
-    }
-
-    public void respondToDeath(final MinecraftClient client) {
-        actions.clear();
-        final var stateMessage = buildStateMessage(client, latestAction, MessageType.STATE_AFTER_ACTION, true);
-        ws.broadcast(stateMessage.toJson());
-        latestAction = null;
-        latestActionsStartedTick = null;
     }
 
     private void onNextTick(final Consumer<MinecraftClient> callback) {

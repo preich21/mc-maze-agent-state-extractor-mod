@@ -19,8 +19,10 @@ public class ActionMessage extends IncomingMessage {
 
     private int applyForTicks;
 
-    private float moveForward;
-    private float moveSidewards;
+    private boolean moveForward;
+    private boolean moveBackward;
+    private boolean moveLeft;
+    private boolean moveRight;
 
     private boolean jump;
 
@@ -34,16 +36,18 @@ public class ActionMessage extends IncomingMessage {
     public List<PlayerAction> toPlayerActions() {
         final List<PlayerAction> actions = new ArrayList<>();
 
-        if (moveForward != 0) {
-            final MoveAction.Direction direction = moveForward > 0 ? MoveAction.Direction.FORWARD : MoveAction.Direction.BACKWARD;
+        if (moveForward || moveBackward) {
+            if (moveForward && moveBackward) throw new IllegalArgumentException("Cannot move forward and backward at the same time.");
+            final MoveAction.Direction direction = moveForward ? MoveAction.Direction.FORWARD : MoveAction.Direction.BACKWARD;
             actions.add(MoveAction.builder()
                     .direction(direction)
                     .ticksRemaining(applyForTicks)
                     .build());
         }
 
-        if (moveSidewards != 0) {
-            final MoveAction.Direction direction = moveSidewards > 0 ? MoveAction.Direction.RIGHT : MoveAction.Direction.LEFT;
+        if (moveLeft || moveRight) {
+            if (moveLeft && moveRight) throw new IllegalArgumentException("Cannot move left and right at the same time.");
+            final MoveAction.Direction direction = moveLeft ? MoveAction.Direction.LEFT : MoveAction.Direction.RIGHT;
             actions.add(MoveAction.builder()
                     .direction(direction)
                     .ticksRemaining(applyForTicks)
