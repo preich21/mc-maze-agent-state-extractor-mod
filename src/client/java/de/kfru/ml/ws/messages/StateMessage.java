@@ -1,5 +1,6 @@
 package de.kfru.ml.ws.messages;
 
+import de.kfru.ml.action.PlayerActions;
 import de.kfru.ml.state.FieldOfView;
 import de.kfru.ml.state.PlayerState;
 import lombok.Builder;
@@ -9,11 +10,11 @@ import java.util.List;
 @Builder(builderClassName = "StateMessageBuilder")
 public class StateMessage extends OutgoingMessage {
 
-    private MessageType type;
-    private int episode;
-    private int step;
-    private long tickStart;
-    private long tickEnd;
+    private final MessageType type = MessageType.OBSERVATION;
+    private long tick;
+
+    private Long actionStartedTick;
+    private ActionMessage activeActionRequest;
 
     private int x;
     private int y;
@@ -41,6 +42,13 @@ public class StateMessage extends OutgoingMessage {
             this.fovDistances = fov.getDistances();
             this.fovBlocks = fov.getBlocks();
 //            System.out.println("FOV blocks contains goal: " + this.fovBlocks.contains(BlockType.GOAL_BLOCK.id));
+            this.died = state.died().died();
+            return this;
+        }
+
+        public StateMessageBuilder activeActions(final PlayerActions activeActions) {
+            this.actionStartedTick = activeActions.getActionStartTick();
+            this.activeActionRequest = activeActions.getActiveActionRequest();
             return this;
         }
     }

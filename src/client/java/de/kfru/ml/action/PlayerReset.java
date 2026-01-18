@@ -44,6 +44,7 @@ public class PlayerReset {
 
         client.player.getInventory().clear();
         client.player.getInventory().setSelectedSlot(0);
+        client.player.requestRespawn(); // TODO test
     }
 
     public static StartPointsData.StartPoint pickStartPoint(final List<StartPointsData.StartPoint> startPoints, long startPointNonce) {

@@ -8,10 +8,7 @@ import de.kfru.ml.ws.messages.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,12 +20,10 @@ import java.util.function.Consumer;
 public class McMazeAgentStateExtractorModClient implements ClientModInitializer {
 
     private static final Logger logger = LoggerFactory.getLogger("mc-maze-agent-state-extractor-mod-client");
-    private static final PlayerActions actions = new PlayerActions();
+    private static final PlayerActions activeActions = new PlayerActions();
 
     private AgentWebsocketServer ws;
 
-    private Long latestActionsStartedTick;
-    private IncomingMessage latestAction;
 
     private final List<Consumer<MinecraftClient>> nextTickCallbacks = new ArrayList<>();
 
@@ -38,21 +33,12 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
         ws.start();
 
         ClientTickEvents.END_CLIENT_TICK.register(this::onTick);
-        ServerTickEvents.END_SERVER_TICK.register(this::killPlayersIfBelow0);
         ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register(ws::onWorldChange);
+//        ClientLifecycleEvents.CLIENT_STARTED.register() // TODO enter world base on env var
 
         disablePauseMenuWhenInBackground();
 
         logger.info("McMazeAgentStateExtractorModClient initialized successfully.");
-    }
-
-    private void killPlayersIfBelow0(final MinecraftServer server) {
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            if (player.isAlive() && !player.getGameMode().isCreative() && player.getY() < 0) {
-                // Kill player properly
-                player.damage(server.getOverworld(), player.getDamageSources().outOfWorld(), Float.MAX_VALUE);
-            }
-        }
     }
 
     private void disablePauseMenuWhenInBackground() {
@@ -65,102 +51,58 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
     private void onTick(final MinecraftClient client) {
         if (client.player == null || client.world == null) return;
 
-        this.runNextTickCallbacks(client);
-
-        if (client.player.isDead()) {
-            logger.info("Player is dead, respawning...");
-            client.player.requestRespawn();
-            if (latestAction == null) {
-                logger.warn("Player is dead but no latest action is recorded.");
-                return; // no action was performed, so no need to send state
-            }
-            final var stateMessage = buildStateMessage(client, latestAction, MessageType.STATE_AFTER_ACTION, true);
-            ws.broadcast(stateMessage.toJson());
-            actions.clear();
-            latestAction = null;
-            latestActionsStartedTick = null;
-            return;
+        if (!this.ws.isConnected()) {
+            activeActions.clear(client);
         }
 
-        final IncomingMessage message = ws.consumeLatestAction();
-        if (message == null) {
-            if (latestAction instanceof ActionMessage action) {
-                boolean allCompleted = actions.perform(client);
-                if (allCompleted && latestAction != null) {
-                    onActionCompleted(client, action);
-                    latestAction = null;
-                }
-            } else if (latestAction instanceof ResetMessage reset) {
-                // resets take exactly one tick
-                onResetCompleted(client, reset);
-                latestAction = null;
-            }
-        }
-
-        if (message instanceof ResetMessage resetMessage) {
-            latestAction = message;
-            latestActionsStartedTick = client.world.getTime();
-            onReset(client, resetMessage);
-        }
-
-        if (message instanceof ActionMessage actionMessage) {
-            latestAction = actionMessage;
-            latestActionsStartedTick = client.world.getTime();
-            actions.perform(actionMessage.toPlayerActions(), client);
-        }
-    }
-
-    private void onNextTick(final Consumer<MinecraftClient> callback) {
-        this.nextTickCallbacks.add(callback);
-    }
-
-    private void runNextTickCallbacks(final MinecraftClient client) {
-        for (Consumer<MinecraftClient> callback : nextTickCallbacks) {
-            try {
-                callback.accept(client);
-            } catch (Exception e) {
-                logger.warn("Failed to run next tick callback. {}", e.getMessage());
-            }
-        }
-        nextTickCallbacks.clear();
-    }
-
-    private void onActionCompleted(final MinecraftClient client, final ActionMessage action) {
-        final StateMessage stateMessage = buildStateMessage(client, action, MessageType.STATE_AFTER_ACTION, false);
+        StateMessage stateMessage = buildStateMessage(client);
         ws.broadcast(stateMessage.toJson());
+
+        checkForNewMessage(client);
+
+        activeActions.perform(client);
     }
+
+    private void checkForNewMessage(final MinecraftClient client) {
+        final IncomingMessage message = ws.consumeLatestAction();
+      switch (message) {
+        case null -> {} // No new action request - keep doing active action
+        case ResetMessage resetMessage -> {
+          activeActions.clear(client);
+          PlayerReset.perform(client, resetMessage.getStartPoint());
+          client.player.sendMessage(Text.of("Starting episode " + message.getEpisode() + ". Resetting player to start point at " + resetMessage.getStartPoint()), false);
+          logger.info("Reset executed.");
+        }
+        case ActionMessage actionMessage -> {
+            activeActions.updateActions(actionMessage, client);
+        }
+        default -> throw new IllegalArgumentException("Unknown message type: " + message.getClass().getName());
+      }
+    }
+
+//    private void onNextTick(final Consumer<MinecraftClient> callback) {
+//        this.nextTickCallbacks.add(callback);
+//    }
+//
+//    private void runNextTickCallbacks(final MinecraftClient client) {
+//        for (Consumer<MinecraftClient> callback : nextTickCallbacks) {
+//            try {
+//                callback.accept(client);
+//            } catch (Exception e) {
+//                logger.warn("Failed to run next tick callback. {}", e.getMessage());
+//            }
+//        }
+//        nextTickCallbacks.clear();
+//    }
 
     @SuppressWarnings("DataFlowIssue") // client.player and client.world have already been checked to be not null
-    private StateMessage buildStateMessage(final MinecraftClient client, final IncomingMessage message, final MessageType type, final boolean died) {
+    private StateMessage buildStateMessage(final MinecraftClient client) {
         final PlayerState state = PlayerState.of(client);
 
-        final long tick = client.world.getTime();
-
-        if (latestActionsStartedTick == null) {
-            throw new IllegalStateException("Latest Action was cleared but something lead to building a StateMessage...");
-        }
-
         return StateMessage.builder()
-                .type(type)
-                .episode(message.getEpisode())
-                .step(message.getStep())
-                .tickStart(latestActionsStartedTick)
-                .tickEnd(tick)
+                .tick(client.world.getTime())
                 .playerState(state)
-                .died(died)
+                .activeActions(activeActions)
                 .build();
-    }
-
-    private void onReset(final MinecraftClient client, final ResetMessage message) {
-        actions.clear();
-        PlayerReset.perform(client, message.getStartPoint());
-        client.player.sendMessage(Text.of("Starting episode " + message.getEpisode() + ". Resetting player to start point at " + message.getStartPoint()), false);
-        logger.info("Reset executed.");
-    }
-
-    private void onResetCompleted(final MinecraftClient client, final ResetMessage reset) {
-        final StateMessage stateMessage = buildStateMessage(client, reset, MessageType.STATE_AFTER_RESET, false);
-        ws.broadcast(stateMessage.toJson());
-        logger.info("Reset completed and state sent to agent.");
     }
 }

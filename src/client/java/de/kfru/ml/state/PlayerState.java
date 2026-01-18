@@ -11,7 +11,8 @@ public record PlayerState(
         PlayerPosition position,
         PlayerDirection facing,
         BlockType standingOn,
-        FieldOfView fieldOfView
+        FieldOfView fieldOfView,
+        PlayerDied died
 ) {
 
     @SuppressWarnings("DataFlowIssue") // client.player and client.world have already been checked to be not null
@@ -20,12 +21,14 @@ public record PlayerState(
         final var direction = PlayerDirection.of(client.player);
         final var standingOn = BlockType.below(client.player, client.world);
         final var fieldOfVision = FieldOfView.of(client.player, client.world);
+        final var died = PlayerDied.of(client.player);
 
         return builder()
                 .position(position)
                 .facing(direction)
                 .standingOn(standingOn)
                 .fieldOfView(fieldOfVision)
+                .died(died)
                 .build();
     }
 
@@ -59,6 +62,15 @@ public record PlayerState(
                     .yaw(player.getYaw())
                     .pitch(player.getPitch())
                     .build();
+        }
+    }
+
+    @Builder
+    public record PlayerDied(boolean died) {
+        static PlayerDied of(final ClientPlayerEntity player) {
+            return PlayerDied.builder()
+                .died(player.isDead())
+                .build();
         }
     }
 }

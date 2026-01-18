@@ -50,8 +50,7 @@ public class AgentWebsocketServer extends WebSocketServer {
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        logger.info("WebSocket connection closed from [{}]: code={}, reason={}, remote={}",
-                conn.getRemoteSocketAddress(), code, reason, remote);
+        logger.info("WebSocket connection closed from [{}]: code={}, reason={}, remote={}", conn.getRemoteSocketAddress(), code, reason, remote);
     }
 
     @Override
@@ -79,5 +78,9 @@ public class AgentWebsocketServer extends WebSocketServer {
     @Override
     public void onStart() {
         logger.info("WebSocket server started on port: {}", getPort());
+    }
+
+    public boolean isConnected() {
+        return !this.getConnections().isEmpty();
     }
 }

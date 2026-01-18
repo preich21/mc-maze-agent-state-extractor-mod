@@ -17,8 +17,6 @@ public class ActionMessage extends IncomingMessage {
 
     private static final Gson GSON = new Gson();
 
-    private int applyForTicks;
-
     private boolean moveForward;
     private boolean moveBackward;
     private boolean moveLeft;
@@ -41,7 +39,6 @@ public class ActionMessage extends IncomingMessage {
             final MoveAction.Direction direction = moveForward ? MoveAction.Direction.FORWARD : MoveAction.Direction.BACKWARD;
             actions.add(MoveAction.builder()
                 .direction(direction)
-                .ticksRemaining(applyForTicks)
                 .build());
         }
 
@@ -50,13 +47,11 @@ public class ActionMessage extends IncomingMessage {
             final MoveAction.Direction direction = moveLeft ? MoveAction.Direction.LEFT : MoveAction.Direction.RIGHT;
             actions.add(MoveAction.builder()
                 .direction(direction)
-                .ticksRemaining(applyForTicks)
                 .build());
         }
 
         if (jump) {
             actions.add(JumpAction.builder()
-                .ticksRemaining(applyForTicks)
                 .build());
         }
 
@@ -64,7 +59,6 @@ public class ActionMessage extends IncomingMessage {
             actions.add(RotateCameraAction.builder()
                 .yawDeltaDegrees(yawDelta)
                 .pitchDeltaDegrees(pitchDelta)
-                .ticksRemaining(applyForTicks)
                 .build());
         }
 
