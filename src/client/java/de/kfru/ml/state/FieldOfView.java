@@ -17,7 +17,7 @@ public record FieldOfView(
         List<BlockInFOV> blocksInFOV
 ) {
 
-    private static final int GRID_SIZE = 50;
+    private static final int GRID_SIZE = 1;
     private static final double MAX_DISTANCE = 50.0;
 
     /** Total angular coverage (degrees) centered on the crosshair. */

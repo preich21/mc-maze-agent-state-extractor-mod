@@ -26,4 +26,9 @@ public class PlayerReset {
         client.player.getInventory().clear();
         client.player.getInventory().setSelectedSlot(0);
     }
+
+    @SuppressWarnings("DataFlowIssue") // client.player is never null when this method is called
+    public static void onlyCamera(final MinecraftClient client) {
+        client.player.setAngles(0.0F, 0.0F);
+    }
 }

@@ -5,26 +5,34 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import org.jspecify.annotations.NonNull;
 
+import java.util.List;
+
 
 @Builder
 public record PlayerState(
         PlayerPosition position,
+        PlayerPositionDelta positionDelta,
         PlayerDirection facing,
         BlockType standingOn,
+        List<BlockType> surroundingBlocks,
         FieldOfView fieldOfView
 ) {
 
     @SuppressWarnings("DataFlowIssue") // client.player and client.world have already been checked to be not null
-    public static PlayerState of(final MinecraftClient client) {
+    public static PlayerState of(final MinecraftClient client, final PlayerPosition previousPosition) {
         final var position = PlayerPosition.of(client.player);
+        final var positionDelta = PlayerPositionDelta.of(previousPosition, position);
         final var direction = PlayerDirection.of(client.player);
         final var standingOn = BlockType.below(client.player, client.world);
+        final var surroundingBlocks = BlockType.surrounding(client.player, client.world);
         final var fieldOfVision = FieldOfView.of(client.player, client.world);
 
         return builder()
                 .position(position)
+                .positionDelta(positionDelta)
                 .facing(direction)
                 .standingOn(standingOn)
+                .surroundingBlocks(surroundingBlocks)
                 .fieldOfView(fieldOfVision)
                 .build();
     }
@@ -35,7 +43,7 @@ public record PlayerState(
                 "position=" + position +
                 ", facing=" + facing +
                 ", standingOn=" + standingOn +
-                ", fieldOfVision=" + fieldOfView +
+                ", fieldOfView=" + fieldOfView +
                 '}';
     }
 
@@ -47,6 +55,26 @@ public record PlayerState(
                     .x(player.getX())
                     .y(player.getY())
                     .z(player.getZ())
+                    .build();
+        }
+    }
+
+    @Builder
+    public record PlayerPositionDelta(double dx, double dy, double dz) {
+
+        public static PlayerPositionDelta of(final PlayerPosition previous, final PlayerPosition current) {
+            if (previous == null) {
+                return PlayerPositionDelta.builder()
+                        .dx(0)
+                        .dy(0)
+                        .dz(0)
+                        .build();
+            }
+
+            return PlayerPositionDelta.builder()
+                    .dx(current.x() - previous.x())
+                    .dy(current.y() - previous.y())
+                    .dz(current.z() - previous.z())
                     .build();
         }
     }

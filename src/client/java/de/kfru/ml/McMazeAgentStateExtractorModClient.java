@@ -31,6 +31,7 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
 
     private Long latestActionsStartedTick;
     private IncomingMessage latestAction;
+    private PlayerState.PlayerPosition positionBeforeAction;
 
     private final List<Consumer<MinecraftClient>> nextTickCallbacks = new ArrayList<>();
 
@@ -97,6 +98,7 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
         if (message instanceof ActionMessage actionMessage) {
             latestAction = actionMessage;
             latestActionsStartedTick = client.world.getTime();
+            positionBeforeAction = PlayerState.PlayerPosition.of(client.player);
             actions.perform(actionMessage.toPlayerActions(), client);
         }
     }
@@ -135,7 +137,7 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
 
     @SuppressWarnings("DataFlowIssue") // client.player and client.world have already been checked to be not null
     private StateMessage buildStateMessage(final MinecraftClient client, final IncomingMessage message, final MessageType type, final boolean died, final boolean[][] mazeWalls) {
-        final PlayerState state = PlayerState.of(client);
+        final PlayerState state = PlayerState.of(client, positionBeforeAction);
 
         final long tick = client.world.getTime();
 
@@ -157,15 +159,16 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
 
     private void onReset(final MinecraftClient client, final ResetMessage message) {
         actions.clear();
-        PlayerReset.perform(client);
 
         if (message.isMazeGeneration()) {
+            PlayerReset.onlyCamera(client);
             ClientPlayNetworking.send(new ResetMazePayload(message.getMazeSize(), message.getSeed() != null ? message.getSeed() : System.currentTimeMillis()));
             ClientPlayNetworking.registerReceiver(ResetSuccessfulPayload.ID, (payload, context) -> {
                 logger.info("Received Reset Successful Payload from server.");
                 onNextTick(c -> onResetCompleted(c, (ResetMessage) latestAction, payload.mazeWalls()));
             });
         } else {
+            PlayerReset.perform(client);
             onNextTick(c -> onResetCompleted(c, message, null));
         }
     }

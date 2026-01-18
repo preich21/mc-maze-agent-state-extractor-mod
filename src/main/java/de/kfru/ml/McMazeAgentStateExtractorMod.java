@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,6 @@ public class McMazeAgentStateExtractorMod implements ModInitializer {
         ServerPlayNetworking.registerGlobalReceiver(ResetMazePayload.ID, (payload, context) -> {
             logger.info("Received RESET packet from player.");
 
-            @SuppressWarnings("resource") // if we autoclose the server it will shut down
             final MinecraftServer server = context.server();
             server.execute(() -> {
                 try {
@@ -52,11 +52,37 @@ public class McMazeAgentStateExtractorMod implements ModInitializer {
     }
 
     private void onReset(final ResetMazePayload payload, final ServerPlayNetworking.Context context) {
+        resetPlayer(context);
+        resetMaze(payload, context);
+        logger.info("Server-side reset successful.");
+    }
+
+    private void resetPlayer(ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            context.player().setVelocity(Vec3d.ZERO);
+            context.player().getAbilities().flying = false;
+            context.player().setSprinting(false);
+            context.player().setSneaking(false);
+            context.player().setPose(net.minecraft.entity.EntityPose.STANDING);
+
+            context.player().teleport(1.5f, 1.0f, 1.5f, false);
+
+            context.player().extinguish();
+            context.player().clearStatusEffects();
+            context.player().setHealth(context.player().getMaxHealth());
+            context.player().getHungerManager().setFoodLevel(20);
+            context.player().getHungerManager().setSaturationLevel(5.0f);
+
+            context.player().getInventory().clear();
+            context.player().getInventory().setSelectedSlot(0);
+        });
+    }
+
+    private void resetMaze(ResetMazePayload payload, ServerPlayNetworking.Context context) {
         final ServerWorld world = context.player().getEntityWorld();
         final Maze maze = mazeGenerator.getMaze(payload.size());
         logger.info(maze.toString());
         final boolean[][] mazeWalls = mazePlacer.placeMazeInWorld(world, new BlockPos(0, 0, 0), 0, 3, maze);
         ServerPlayNetworking.send(context.player(), new ResetSuccessfulPayload(mazeWalls));
-        logger.info("Reset successful.");
     }
 }

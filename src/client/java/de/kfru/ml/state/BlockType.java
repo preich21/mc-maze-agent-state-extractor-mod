@@ -5,6 +5,8 @@ import net.minecraft.block.Blocks;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 
+import java.util.List;
+
 public enum BlockType {
     AIR(0),
     START_BLOCK(2),
@@ -34,5 +36,19 @@ public enum BlockType {
         final var position = player.getSteppingPos();
         final var block = world.getBlockState(position).getBlock();
         return of(block);
+    }
+
+    public static List<BlockType> surrounding(final ClientPlayerEntity player, final ClientWorld world) {
+        final var pos = player.getSteppingPos();
+        return List.of(
+                of(world.getBlockState(pos.north().up()).getBlock()),
+                of(world.getBlockState(pos.north().east().up()).getBlock()),
+                of(world.getBlockState(pos.east().up()).getBlock()),
+                of(world.getBlockState(pos.east().south().up()).getBlock()),
+                of(world.getBlockState(pos.south().up()).getBlock()),
+                of(world.getBlockState(pos.south().west().up()).getBlock()),
+                of(world.getBlockState(pos.west().up()).getBlock()),
+                of(world.getBlockState(pos.west().north().up()).getBlock())
+        );
     }
 }
