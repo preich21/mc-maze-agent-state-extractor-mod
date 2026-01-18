@@ -40,32 +40,32 @@ public class ActionMessage extends IncomingMessage {
             if (moveForward && moveBackward) throw new IllegalArgumentException("Cannot move forward and backward at the same time.");
             final MoveAction.Direction direction = moveForward ? MoveAction.Direction.FORWARD : MoveAction.Direction.BACKWARD;
             actions.add(MoveAction.builder()
-                    .direction(direction)
-                    .ticksRemaining(applyForTicks)
-                    .build());
+                .direction(direction)
+                .ticksRemaining(applyForTicks)
+                .build());
         }
 
         if (moveLeft || moveRight) {
             if (moveLeft && moveRight) throw new IllegalArgumentException("Cannot move left and right at the same time.");
             final MoveAction.Direction direction = moveLeft ? MoveAction.Direction.LEFT : MoveAction.Direction.RIGHT;
             actions.add(MoveAction.builder()
-                    .direction(direction)
-                    .ticksRemaining(applyForTicks)
-                    .build());
+                .direction(direction)
+                .ticksRemaining(applyForTicks)
+                .build());
         }
 
         if (jump) {
             actions.add(JumpAction.builder()
-                    .ticksRemaining(applyForTicks)
-                    .build());
+                .ticksRemaining(applyForTicks)
+                .build());
         }
 
         if (yawDelta != 0 || pitchDelta != 0) {
             actions.add(RotateCameraAction.builder()
-                    .yawDeltaDegrees(yawDelta)
-                    .pitchDeltaDegrees(pitchDelta)
-                    .ticksRemaining(applyForTicks)
-                    .build());
+                .yawDeltaDegrees(yawDelta)
+                .pitchDeltaDegrees(pitchDelta)
+                .ticksRemaining(applyForTicks)
+                .build());
         }
 
         return actions;

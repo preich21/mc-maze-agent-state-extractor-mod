@@ -1,0 +1,21 @@
+{
+  "stats": {
+    "minecraft:used": {
+      "minecraft:bedrock": 24
+    },
+    "minecraft:custom": {
+      "minecraft:sprint_one_cm": 169789,
+      "minecraft:time_since_rest": 41056,
+      "minecraft:walk_one_cm": 1402697,
+      "minecraft:total_world_time": 735596,
+      "minecraft:fly_one_cm": 52841094,
+      "minecraft:crouch_one_cm": 2924,
+      "minecraft:sneak_time": 817,
+      "minecraft:play_time": 717693,
+      "minecraft:deaths": 7128,
+      "minecraft:jump": 13875,
+      "minecraft:time_since_death": 41055
+    }
+  },
+  "DataVersion": 4671
+}
