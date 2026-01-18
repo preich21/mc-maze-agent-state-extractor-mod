@@ -14,7 +14,7 @@ public class StateMessage extends OutgoingMessage {
     private long tick;
 
     private Long actionStartedTick;
-    private ActionMessage activeActionRequest;
+//    private ActionMessage activeActionRequest;
 
     private int x;
     private int y;
@@ -48,7 +48,7 @@ public class StateMessage extends OutgoingMessage {
 
         public StateMessageBuilder activeActions(final PlayerActions activeActions) {
             this.actionStartedTick = activeActions.getActionStartTick();
-            this.activeActionRequest = activeActions.getActiveActionRequest();
+//            this.activeActionRequest = activeActions.getActiveActionRequest();
             return this;
         }
     }
