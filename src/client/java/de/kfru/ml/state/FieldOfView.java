@@ -17,11 +17,12 @@ public record FieldOfView(
         List<BlockInFOV> blocksInFOV
 ) {
 
-    private static final int GRID_SIZE = 1;
+    private static final int GRID_ROWS = 1;
+    private static final int GRID_COLS = 9;
     private static final double MAX_DISTANCE = 50.0;
 
     /** Total angular coverage (degrees) centered on the crosshair. */
-    private static final float FOV = 70f;
+    private static final float FOV = 180f;
 
     public static FieldOfView of(final ClientPlayerEntity player, final ClientWorld world) {
         final List<BlockInFOV> blocksInFOV = computeBlocksInFOV(player, world);
@@ -31,8 +32,8 @@ public record FieldOfView(
 
     private static List<BlockInFOV> computeBlocksInFOV(ClientPlayerEntity player, ClientWorld world) {
         final List<BlockInFOV> blocksInFOV = new ArrayList<>();
-        for (int row = 0; row < GRID_SIZE; row++) {
-            for (int col = 0; col < GRID_SIZE; col++) {
+        for (int row = 0; row < GRID_ROWS; row++) {
+            for (int col = 0; col < GRID_COLS; col++) {
                 final BlockInFOV blockInFOV = raycastBlockAtGridPosition(row, col, player, world);
                 blocksInFOV.add(blockInFOV);
             }
@@ -43,8 +44,8 @@ public record FieldOfView(
     private static BlockInFOV raycastBlockAtGridPosition(final int gridRow, final int gridCol, final ClientPlayerEntity player, final ClientWorld world) {
         // Convert grid indices to normalized cell-center coordinates in [0..1].
         // These are then mapped to symmetric angle offsets in degrees: [-FOV/2 .. +FOV/2].
-        final float colCenter01 = (gridCol + 0.5f) / GRID_SIZE; // 0..1
-        final float rowCenter01 = (gridRow + 0.5f) / GRID_SIZE; // 0..1
+        final float colCenter01 = (gridCol + 0.5f) / GRID_COLS; // 0..1
+        final float rowCenter01 = (gridRow + 0.5f) / GRID_ROWS; // 0..1
 
         final float yawOffset = (colCenter01 - 0.5f) * FOV;
         final float pitchOffset = (rowCenter01 - 0.5f) * FOV;
@@ -73,7 +74,7 @@ public record FieldOfView(
         for (int i = 0; i < blocksInFOV.size(); i++) {
             String block = blocksInFOV.get(i).toString();
             result.append(block).append(" ".repeat(20 - block.length())); // just to have a nice grid in the log
-            if ((i + 1) % GRID_SIZE == 0) {
+            if ((i + 1) % GRID_COLS == 0) {
                 result.append("\n");
             } else {
                 result.append(", ");
