@@ -29,7 +29,9 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
 
     @Override
     public void onInitializeClient() {
-        ws = new AgentWebsocketServer("127.0.0.1", 8081);
+        String websocketPortEnv = System.getenv("WS_PORT");
+        int websocketPort = websocketPortEnv != null ? Integer.parseInt(websocketPortEnv) : 8081;
+        ws = new AgentWebsocketServer("127.0.0.1", websocketPort);
         ws.start();
 
         ClientTickEvents.END_CLIENT_TICK.register(this::onTick);
