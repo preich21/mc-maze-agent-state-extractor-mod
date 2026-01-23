@@ -76,14 +76,14 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
             client.player.sendMessage(Text.of("Starting episode " + resetMessage.getEpisode() + ". Resetting player to start point at " + resetMessage.getStartPoint()), false);
             logger.info("Reset performed in {} ms.", System.currentTimeMillis() - start);
             logger.info("Reset executed.");
-            ws.broadcast(buildStateMessage(client).toJson());
+            ws.broadcast(buildStateMessage(client).toBytes());
             return;
         }
         final ActionMessage actionMessage = ws.latestAction.getAndSet(null);
         if (actionMessage != null) {
             activeActions.updateActions(actionMessage, client);
         }
-        ws.broadcast(buildStateMessage(client).toJson());
+        ws.broadcast(buildStateMessage(client).toBytes());
         activeActions.perform(client);
     }
 

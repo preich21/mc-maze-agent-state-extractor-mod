@@ -1,8 +1,11 @@
 package de.kfru.ml.state;
 
 import lombok.Builder;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.util.math.BlockPos;
 import org.jspecify.annotations.NonNull;
 
 
@@ -12,7 +15,8 @@ public record PlayerState(
         PlayerDirection facing,
         BlockType standingOn,
         FieldOfView fieldOfView,
-        PlayerDied died
+        PlayerDied died,
+        GroundBelow hasGroundBelow
 ) {
 
     @SuppressWarnings("DataFlowIssue") // client.player and client.world have already been checked to be not null
@@ -29,6 +33,7 @@ public record PlayerState(
                 .standingOn(standingOn)
                 .fieldOfView(fieldOfVision)
                 .died(died)
+                .hasGroundBelow(GroundBelow.of(client.player))
                 .build();
     }
 
@@ -70,6 +75,25 @@ public record PlayerState(
         static PlayerDied of(final ClientPlayerEntity player) {
             return PlayerDied.builder()
                 .died(player.isDead())
+                .build();
+        }
+    }
+
+    @Builder
+    public record GroundBelow(boolean hasGroundBelow) {
+        static GroundBelow of(final ClientPlayerEntity player) {
+            final BlockPos playerPos = player.getBlockPos();
+            boolean groundBelow = false;
+            for (int i = 0; i < 10; i++) {
+                final Block block = player.getEntityWorld().getBlockState(playerPos.add(0, -1 - i, 0)).getBlock();
+                if (!block.equals(Blocks.AIR)) {
+                    groundBelow = true;
+                    break;
+                }
+            }
+
+            return GroundBelow.builder()
+                .hasGroundBelow(groundBelow)
                 .build();
         }
     }

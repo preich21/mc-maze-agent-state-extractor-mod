@@ -98,7 +98,7 @@ public record FieldOfView(
             if (raycastHit == null || raycastHit.getType() != HitResult.Type.BLOCK) {
                 return BlockInFOV.builder()
                         .type(BlockType.AIR)
-                        .distance(-1)
+                        .distance(MAX_DISTANCE)
                         .build();
             }
 
