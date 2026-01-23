@@ -15,7 +15,7 @@ build/
 Thumbs.db
 
 # Runtime
-run/
+#run/
 
 # Git
 .git/

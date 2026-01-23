@@ -1,18 +1,18 @@
 version: '3.8'
 
 services:
-  minecraft-mod-server:
+  minecraft-client:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mc-maze-agent-server
+    container_name: mc-agent-client
     ports:
-      - "25565:25565"  # Minecraft server port
-      - "8887:8887"    # WebSocket port for agent communication
+      - "8085:8081"    # WebSocket port for agent communication
     environment:
-      - JAVA_OPTS=-Xmx2G -Xms2G
-      - MINECRAFT_VERSION=1.21.11
-    stdin_open: true  # Keep stdin open for server commands
+      JAVA_OPTS: "-Xmx2G -Xms2G"
+      MINECRAFT_VERSION: "1.21.11"
+      JOIN_WORLD_ON_START: "Simple World 1"
+#    stdin_open: true  # Keep stdin open for server commands
     tty: true         # Allocate a pseudo-TTY
     restart: unless-stopped
     networks:

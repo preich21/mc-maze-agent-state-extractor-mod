@@ -22,40 +22,27 @@ RUN ./gradlew --no-daemon build -x test
 RUN ./gradlew --no-daemon downloadAssets
 
 # Stage 2: Runtime image
-FROM openjdk:21-jdk-slim
-
-LABEL authors="axherrm"
-LABEL description="MC Maze Agent State Extractor Mod - Minecraft with Fabric"
+FROM gradle:8.5-jdk21
 
 WORKDIR /minecraft
 
-# Copy Minecraft and Fabric runtime from builder
-COPY --from=builder /build/.gradle /minecraft/.gradle
-COPY --from=builder /build/build/libs/*.jar /minecraft/mods/
+COPY --from=builder /build/ /minecraft/
 
 # Copy world data and configuration from run directory (not as volume)
-COPY run/saves /minecraft/saves
-COPY run/config /minecraft/config
-COPY run/options.txt /minecraft/options.txt
+COPY run/ /minecraft/run/
 
 # Accept EULA
 RUN echo "eula=true" > eula.txt
 
-# Server configuration
-RUN echo "server-port=25565" > server.properties && \
-    echo "online-mode=false" >> server.properties && \
-    echo "gamemode=survival" >> server.properties && \
-    echo "difficulty=normal" >> server.properties
-
-# Expose Minecraft server port and WebSocket port
-EXPOSE 25565
-EXPOSE 8887
+EXPOSE 8081
 
 # Set JVM options
 ENV JAVA_OPTS="-Xmx2G -Xms2G"
 
-# Run using gradle's runServer task which handles all Fabric setup
-# Note: This assumes gradlew is available
-COPY --from=builder /build/gradlew /minecraft/
-COPY --from=builder /build/gradle /minecraft/gradle
-CMD ["./gradlew", "runServer", "--no-daemon"]
+# headless may be needed
+# -Djava.awt.headless=true
+
+# Run using gradle's runClient task which handles all Fabric setup
+#COPY --from=builder /build/gradlew /minecraft/
+#COPY --from=builder /build/gradle /minecraft/gradle
+CMD ["./gradlew", "runClient", "--no-daemon"]
