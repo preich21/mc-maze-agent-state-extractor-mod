@@ -6,8 +6,10 @@ import de.kfru.ml.ws.messages.ResetMessage;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.server.integrated.IntegratedServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -50,6 +52,11 @@ public class PlayerReset {
 
         client.player.getInventory().clear();
         client.player.getInventory().setSelectedSlot(0);
+
+//        IntegratedServer server = client.getServer();
+//        final ServerPlayerEntity sp = server.getPlayerManager().getPlayer(client.player.getUuid());
+//        server.getPlayerManager().respawnPlayer(sp, false, Entity.RemovalReason.KILLED);
+//        System.out.println("PlayerReset performed");
         client.player.requestRespawn(); // TODO test
     }
 
@@ -74,7 +81,7 @@ public class PlayerReset {
                         final BlockState srcState = world.getBlockState(srcBlock);
                         final BlockState destState = world.getBlockState(destBlock);
                         if (!srcState.getBlock().equals(destState.getBlock())) {
-                            System.out.println("source and dest block differ");
+//                            System.out.println("source and dest block differ");
                             world.setBlockState(destBlock, srcState);
                         }
                     }

@@ -68,28 +68,23 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
             activeActions.clear(client);
         }
 
-        final IncomingMessage message = ws.consumeLatestAction();
-        switch (message) {
-            case null -> {
-                ws.broadcast(buildStateMessage(client).toJson());
-                activeActions.perform(client);
-            }
-            case ResetMessage resetMessage -> {
-                long start = System.currentTimeMillis();
-                activeActions.clear(client);
-                PlayerReset.perform(client, resetMessage);
-                client.player.sendMessage(Text.of("Starting episode " + message.getEpisode() + ". Resetting player to start point at " + resetMessage.getStartPoint()), false);
-                logger.info("Reset performed in {} ms.", System.currentTimeMillis() - start);
-                logger.info("Reset executed.");
-                ws.broadcast(buildStateMessage(client).toJson());
-            }
-            case ActionMessage actionMessage -> {
-                activeActions.updateActions(actionMessage, client);
-                ws.broadcast(buildStateMessage(client).toJson());
-                activeActions.perform(client);
-            }
-            default -> throw new IllegalArgumentException("Unknown message type: " + message.getClass().getName());
+        final ResetMessage resetMessage = ws.resetMessage.getAndSet(null);
+        if (resetMessage != null) {
+            long start = System.currentTimeMillis();
+            activeActions.clear(client);
+            PlayerReset.perform(client, resetMessage);
+            client.player.sendMessage(Text.of("Starting episode " + resetMessage.getEpisode() + ". Resetting player to start point at " + resetMessage.getStartPoint()), false);
+            logger.info("Reset performed in {} ms.", System.currentTimeMillis() - start);
+            logger.info("Reset executed.");
+            ws.broadcast(buildStateMessage(client).toJson());
+            return;
         }
+        final ActionMessage actionMessage = ws.latestAction.getAndSet(null);
+        if (actionMessage != null) {
+            activeActions.updateActions(actionMessage, client);
+        }
+        ws.broadcast(buildStateMessage(client).toJson());
+        activeActions.perform(client);
     }
 
 
