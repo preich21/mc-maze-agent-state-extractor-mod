@@ -24,18 +24,5 @@ public class ResetMessage extends IncomingMessage {
         ROTATE_90,
         ROTATE_180,
         ROTATE_270
-        ;
-
-//        public static ResetMessage.StartPointRotation of(final PlayerAction action) {
-//            return switch (action) {
-//                case MoveAction moveAction -> switch (moveAction.getDirection()) {
-//                    case FORWARD, BACKWARD -> MOVE_FORWARD;
-//                    case LEFT, RIGHT -> MOVE_SIDEWARDS;
-//                };
-//                case JumpAction ignored -> JUMP;
-//                case RotateCameraAction ignored -> ROTATE_CAMERA;
-//                default -> throw new IllegalArgumentException("Unknown action type: " + action.getClass().getName());
-//            };
-//        }
     }
 }
