@@ -60,6 +60,7 @@ public class PlayerReset {
         // get all surrounding blocks in 50 block range around the spawn point and copy them to 0 0 0
 
         server.executeSync(() -> {
+            // TODO load relevant chunks
             for (int x = -SPAWN_POINT_RADIUS; x < SPAWN_POINT_RADIUS; x++) {
                 for (int y = -1; y < 20; y++) {
                     for (int z = -SPAWN_POINT_RADIUS; z < SPAWN_POINT_RADIUS; z++) {
