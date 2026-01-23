@@ -32,5 +32,5 @@ WEBSOCKET ws://localhost:8081/websocket
     "yaw" : -72.68340730047726,
     "pitch" : -17.481767287486207
   },
-  "startPointRotation": "KEEP_POSITION"
+  "startPointRotation": "ROTATE_90"
 }

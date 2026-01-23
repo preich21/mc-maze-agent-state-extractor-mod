@@ -24,11 +24,11 @@ public class PlayerReset {
     @SuppressWarnings("DataFlowIssue") // client.player is never null when this method is called
     public static void perform(final MinecraftClient client, ResetMessage resetMessage) {
         final StartPointsData.StartPoint startPoint = resetMessage.getStartPoint();
-        final WorldProperties.SpawnPoint spawnPoint = RespawnUtil.getPlayerRespawn(client);
-        float yaw = spawnPoint.yaw();
-        float pitch = spawnPoint.pitch();
-        if (startPoint != null) {
-            copyStartPointToRespawn(client, startPoint, spawnPoint.getPos(), resetMessage.getStartPointRotation());
+        final BlockPos spawnPoint = new BlockPos(0, 0, 0);
+        final float yaw;
+        float pitch;
+//        if (startPoint != null) {
+            copyStartPointToRespawn(client, startPoint, spawnPoint, resetMessage.getStartPointRotation());
             pitch = startPoint.pitch();
             yaw = startPoint.yaw() + switch (resetMessage.getStartPointRotation()) {
                 case KEEP_POSITION -> 0;
@@ -36,28 +36,37 @@ public class PlayerReset {
                 case ROTATE_180 -> 180;
                 case ROTATE_270 -> 90;
             };
-        }
-        client.player.refreshPositionAndAngles(spawnPoint.getPos(), yaw, pitch);
-        client.player.setVelocity(Vec3d.ZERO);
-        client.player.getAbilities().flying = false;
-        client.player.setSprinting(false);
-        client.player.setSneaking(false);
-        client.player.setPose(EntityPose.STANDING);
-
-        client.player.extinguish();
-        client.player.clearStatusEffects();
-        client.player.setHealth(client.player.getMaxHealth());
-        client.player.getHungerManager().setFoodLevel(20);
-        client.player.getHungerManager().setSaturationLevel(5.0f);
-
-        client.player.getInventory().clear();
-        client.player.getInventory().setSelectedSlot(0);
-
-//        IntegratedServer server = client.getServer();
-//        final ServerPlayerEntity sp = server.getPlayerManager().getPlayer(client.player.getUuid());
-//        server.getPlayerManager().respawnPlayer(sp, false, Entity.RemovalReason.KILLED);
-//        System.out.println("PlayerReset performed");
-        client.player.requestRespawn(); // TODO test
+//        } else {
+//          pitch = spawnPoint.pitch();
+//          yaw = spawnPoint.yaw();
+//        }
+      System.out.println("Resetting player to spawn point at " + spawnPoint + " with yaw " + yaw + " and pitch " + pitch);
+        IntegratedServer server = client.getServer();
+        RespawnUtil.setSpawnPoint(client, spawnPoint, yaw, pitch);
+        client.player.requestRespawn();
+        client.player.refreshPositionAndAngles(spawnPoint, yaw, pitch);
+        client.player.setYaw(yaw);
+        client.player.setPitch(pitch);
+//        server.executeSync(() -> {
+//            final ServerPlayerEntity sp = server.getPlayerManager().getPlayer(client.player.getUuid());
+////            server.getPlayerManager().respawnPlayer(sp, false, Entity.RemovalReason.DISCARDED);
+////            sp.setHealth(20.0f);
+////            sp.teleport(spawnPoint.getPos().getX() + 0.5, spawnPoint.getPos().getY() + 0.5, spawnPoint.getPos().getZ() + 0.5, true);
+////            sp.setYaw(yaw);
+////            sp.setPitch(pitch);
+//            sp.setVelocity(Vec3d.ZERO);
+//            sp.getAbilities().flying = false;
+//            sp.setSprinting(false);
+//            sp.setSneaking(false);
+//            sp.setPose(EntityPose.STANDING);
+//            sp.extinguish();
+//            sp.clearStatusEffects();
+//            sp.setHealth(client.player.getMaxHealth());
+//            sp.getHungerManager().setFoodLevel(20);
+//            sp.getHungerManager().setSaturationLevel(5.0f);
+//            sp.getInventory().clear();
+//            sp.getInventory().setSelectedSlot(0);
+//        });
     }
 
     private static void copyStartPointToRespawn(final MinecraftClient client, final StartPointsData.StartPoint startPoint, final BlockPos dstCenter, final ResetMessage.StartPointRotation rotation) {
