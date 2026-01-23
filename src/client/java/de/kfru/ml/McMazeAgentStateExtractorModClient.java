@@ -6,9 +6,11 @@ import de.kfru.ml.state.PlayerState;
 import de.kfru.ml.ws.AgentWebsocketServer;
 import de.kfru.ml.ws.messages.*;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.server.integrated.IntegratedServerLoader;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,11 +38,20 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
 
         ClientTickEvents.END_CLIENT_TICK.register(this::onTick);
         ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register(ws::onWorldChange);
-//        ClientLifecycleEvents.CLIENT_STARTED.register() // TODO enter world base on env var
+        String joinWorldOnStart = System.getenv("JOIN_WORLD_ON_START");
+        if (joinWorldOnStart != null) {
+          logger.info("Configured to join world '{}' on client start.", joinWorldOnStart);
+          ClientLifecycleEvents.CLIENT_STARTED.register(client -> this.joinWorld(client, joinWorldOnStart));
+        }
 
         disablePauseMenuWhenInBackground();
 
         logger.info("McMazeAgentStateExtractorModClient initialized successfully.");
+    }
+
+    private void joinWorld(MinecraftClient client, String worldName) {
+      IntegratedServerLoader integratedServerLoader = client.createIntegratedServerLoader();
+      integratedServerLoader.start(worldName, () -> logger.info("Cancelled joining world {}", worldName));
     }
 
     private void disablePauseMenuWhenInBackground() {
@@ -57,30 +68,30 @@ public class McMazeAgentStateExtractorModClient implements ClientModInitializer 
             activeActions.clear(client);
         }
 
-        StateMessage stateMessage = buildStateMessage(client);
-        ws.broadcast(stateMessage.toJson());
-
-        checkForNewMessage(client);
-
-        activeActions.perform(client);
-    }
-
-    private void checkForNewMessage(final MinecraftClient client) {
         final IncomingMessage message = ws.consumeLatestAction();
-      switch (message) {
-        case null -> {} // No new action request - keep doing active action
-        case ResetMessage resetMessage -> {
-          activeActions.clear(client);
-          PlayerReset.perform(client, resetMessage.getStartPoint());
-          client.player.sendMessage(Text.of("Starting episode " + message.getEpisode() + ". Resetting player to start point at " + resetMessage.getStartPoint()), false);
-          logger.info("Reset executed.");
+        switch (message) {
+            case null -> {
+                ws.broadcast(buildStateMessage(client).toJson());
+                activeActions.perform(client);
+            }
+            case ResetMessage resetMessage -> {
+                long start = System.currentTimeMillis();
+                activeActions.clear(client);
+                PlayerReset.perform(client, resetMessage);
+                client.player.sendMessage(Text.of("Starting episode " + message.getEpisode() + ". Resetting player to start point at " + resetMessage.getStartPoint()), false);
+                logger.info("Reset performed in {} ms.", System.currentTimeMillis() - start);
+                logger.info("Reset executed.");
+                ws.broadcast(buildStateMessage(client).toJson());
+            }
+            case ActionMessage actionMessage -> {
+                activeActions.updateActions(actionMessage, client);
+                ws.broadcast(buildStateMessage(client).toJson());
+                activeActions.perform(client);
+            }
+            default -> throw new IllegalArgumentException("Unknown message type: " + message.getClass().getName());
         }
-        case ActionMessage actionMessage -> {
-            activeActions.updateActions(actionMessage, client);
-        }
-        default -> throw new IllegalArgumentException("Unknown message type: " + message.getClass().getName());
-      }
     }
+
 
 //    private void onNextTick(final Consumer<MinecraftClient> callback) {
 //        this.nextTickCallbacks.add(callback);

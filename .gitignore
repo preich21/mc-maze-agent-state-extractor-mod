@@ -29,6 +29,10 @@ bin/
 *.DS_Store
 
 # fabric
+run/logs
+run/screenshots
+run/crash-reports
+run/command_history.txt
 
 # java
 
