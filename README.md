@@ -39,3 +39,12 @@ export MC_WEBSOCKET_PORT=8081  # Change the port for each terminal
 ...and open one of the worlds named `Generated Maze 808X` in `Singleplayer` mode in each instance (if you want to train
 on more than 5 instances you might have to create further worlds yourself).
 When switching tabs to Python to start the training, make sure you don't open any menus in Minecraft (switch with Alt+Tab).
+
+
+## Code Structure
+
+The entrypoints in the client and server mods are `McMazeAgentStateExtractorModClient` and `McMazeAgentStateExtractorModServer`, respectively.
+
+The main logic for extracting the player's state and sending it via WebSocket to Python is implemented in the client mod.
+
+Maze generation is implemented in the server mod, specifically in the `MazeGenerator` class.
