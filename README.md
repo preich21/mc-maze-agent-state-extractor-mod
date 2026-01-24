@@ -1,4 +1,4 @@
-# Minecraft Maze Agent - State Extractor Mod
+# Minecraft Maze Agent - State Extractor Mod - Patrick's Version
 
 A Minecraft mod that extracts the state of a player to work together with the `mc-maze-agent`.
 
@@ -46,5 +46,7 @@ When switching tabs to Python to start the training, make sure you don't open an
 The entrypoints in the client and server mods are `McMazeAgentStateExtractorModClient` and `McMazeAgentStateExtractorModServer`, respectively.
 
 The main logic for extracting the player's state and sending it via WebSocket to Python is implemented in the client mod.
+See the `PlayerState` class for state extraction and the implementations of the abstract `PlayerAction` class for the
+actions the agent performs.
 
 Maze generation is implemented in the server mod, specifically in the `MazeGenerator` class.
