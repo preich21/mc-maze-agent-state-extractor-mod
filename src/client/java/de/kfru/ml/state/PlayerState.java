@@ -1,8 +1,11 @@
 package de.kfru.ml.state;
 
 import lombok.Builder;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.util.math.BlockPos;
 import org.jspecify.annotations.NonNull;
 
 
@@ -11,7 +14,9 @@ public record PlayerState(
         PlayerPosition position,
         PlayerDirection facing,
         BlockType standingOn,
-        FieldOfView fieldOfView
+        FieldOfView fieldOfView,
+        PlayerDied died,
+        GroundBelow hasGroundBelow
 ) {
 
     @SuppressWarnings("DataFlowIssue") // client.player and client.world have already been checked to be not null
@@ -20,12 +25,15 @@ public record PlayerState(
         final var direction = PlayerDirection.of(client.player);
         final var standingOn = BlockType.below(client.player, client.world);
         final var fieldOfVision = FieldOfView.of(client.player, client.world);
+        final var died = PlayerDied.of(client.player);
 
         return builder()
                 .position(position)
                 .facing(direction)
                 .standingOn(standingOn)
                 .fieldOfView(fieldOfVision)
+                .died(died)
+                .hasGroundBelow(GroundBelow.of(client.player))
                 .build();
     }
 
@@ -59,6 +67,34 @@ public record PlayerState(
                     .yaw(player.getYaw())
                     .pitch(player.getPitch())
                     .build();
+        }
+    }
+
+    @Builder
+    public record PlayerDied(boolean died) {
+        static PlayerDied of(final ClientPlayerEntity player) {
+            return PlayerDied.builder()
+                .died(player.isDead())
+                .build();
+        }
+    }
+
+    @Builder
+    public record GroundBelow(boolean hasGroundBelow) {
+        static GroundBelow of(final ClientPlayerEntity player) {
+            final BlockPos playerPos = player.getBlockPos();
+            boolean groundBelow = false;
+            for (int i = 0; i < 10; i++) {
+                final Block block = player.getEntityWorld().getBlockState(playerPos.add(0, -1 - i, 0)).getBlock();
+                if (!block.equals(Blocks.AIR)) {
+                    groundBelow = true;
+                    break;
+                }
+            }
+
+            return GroundBelow.builder()
+                .hasGroundBelow(groundBelow)
+                .build();
         }
     }
 }

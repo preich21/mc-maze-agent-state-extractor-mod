@@ -1,55 +1,40 @@
 package de.kfru.ml.action;
 
+import de.kfru.ml.ws.messages.ActionMessage;
+import lombok.Getter;
 import net.minecraft.client.MinecraftClient;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Getter
 public class PlayerActions {
 
-    private final Map<Type, PlayerAction> actions = new ConcurrentHashMap<>();
+    private final Map<Type, PlayerAction> activeActions = new ConcurrentHashMap<>();
+    private ActionMessage activeActionRequest;
+    private Long actionStartTick;
 
-    public boolean perform(final MinecraftClient client) {
-        return perform(List.of(), client);
+    public void perform(final MinecraftClient client) {
+        activeActions.forEach((key, value) -> value.performUntilStop(client));
     }
 
-    public boolean perform(final List<PlayerAction> newActions,  final MinecraftClient client) {
-        for (final PlayerAction newAction : newActions) {
-            addNewAction(newAction);
-        }
-
-        for (Entry<Type, PlayerAction> action : actions.entrySet()) {
-            performAction(action, client);
-        }
-        return actions.isEmpty();
-    }
-
-    private void addNewAction(final PlayerAction action) {
-        final PlayerAction previousAction = actions.put(Type.of(action), action);
-        if (previousAction != null) {
-            previousAction.cancel();
+    public void updateActions(final ActionMessage actionMessage, final MinecraftClient client) {
+        this.clear(client);
+        this.activeActionRequest = actionMessage;
+        this.actionStartTick = client.world.getTime();
+        for (PlayerAction action : actionMessage.toPlayerActions()) {
+            final PlayerAction previousAction = activeActions.put(Type.of(action), action);
+            if (previousAction != null) {
+                throw new IllegalArgumentException("Cannot use two actions of the same type at the same time: " + action.getClass().getName());
+            }
         }
     }
 
-    private void performAction(final Entry<Type, PlayerAction> action, final MinecraftClient client) {
-        if (action.getValue() == null) {
-            return;
-        }
-
-        final boolean finished = action.getValue().perform(client);
-
-        if (finished) {
-            actions.remove(action.getKey());
-        }
-    }
-
-    public void clear() {
-        for (final PlayerAction action : actions.values()) {
-            action.cancel();
-        }
-        actions.clear();
+    public void clear(final MinecraftClient client) {
+        this.activeActions.forEach((type, action) -> action.stop(client));
+        this.activeActions.clear();
+        this.actionStartTick = null;
+        this.activeActionRequest = null;
     }
 
     public enum Type {

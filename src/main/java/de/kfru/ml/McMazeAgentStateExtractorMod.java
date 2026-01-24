@@ -3,6 +3,9 @@ package de.kfru.ml;
 import de.kfru.ml.commands.*;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +26,18 @@ public class McMazeAgentStateExtractorMod implements ModInitializer {
 		LOGGER.info("Hello Fabric world!");
 
 		CommandRegistrationCallback.EVENT.register(CommandRegistry::registerCommandHandlers);
+		ServerTickEvents.END_SERVER_TICK.register(this::killPlayersIfBelow0);
 
 		LOGGER.info("McMazeAgentStateExtractorMod initialized.");
+	}
+
+	private void killPlayersIfBelow0(final MinecraftServer server) {
+		for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+			if (player.isAlive() && !player.getGameMode().isCreative() && player.getY() < 0) {
+				// Kill player properly
+				player.damage(server.getOverworld(), player.getDamageSources().outOfWorld(), Float.MAX_VALUE);
+			}
+		}
 	}
 
 

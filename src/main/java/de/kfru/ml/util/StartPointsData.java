@@ -28,7 +28,10 @@ public class StartPointsData extends PersistentState {
           Codec.INT.fieldOf("y").forGetter(StartPoint::y),
           Codec.INT.fieldOf("z").forGetter(StartPoint::z),
           Codec.FLOAT.fieldOf("yaw").forGetter(StartPoint::yaw),
-          Codec.FLOAT.fieldOf("pitch").forGetter(StartPoint::pitch)
+          Codec.FLOAT.fieldOf("pitch").forGetter(StartPoint::pitch),
+          Codec.INT.fieldOf("goal_x").forGetter(StartPoint::goalX),
+          Codec.INT.fieldOf("goal_y").forGetter(StartPoint::goalY),
+          Codec.INT.fieldOf("goal_z").forGetter(StartPoint::goalZ)
       ).apply(instance, StartPoint::new));
 
   public static final Codec<StartPointsData> CODEC =
@@ -52,10 +55,14 @@ public class StartPointsData extends PersistentState {
     this.startPoints = new ArrayList<>(startPoints);
   }
 
-  public record StartPoint(UUID id, float weight, int x, int y, int z, float yaw, float pitch) {
+  public record StartPoint(UUID id, float weight, int x, int y, int z, float yaw, float pitch, int goalX, int goalY, int goalZ) {
 
-    public StartPoint(float weight, int x, int y, int z, float yaw, float pitch) {
-      this(UUID.randomUUID(), weight, x, y, z, yaw, pitch);
+    public StartPoint(float weight, BlockPos startPoint, float yaw, float pitch, BlockPos goalPoint) {
+      this(UUID.randomUUID(), weight, startPoint.getX(), startPoint.getY(), startPoint.getZ(), yaw, pitch, goalPoint.getX(), goalPoint.getY(), goalPoint.getZ());
+    }
+
+    public StartPoint(Float weight, Integer x, Integer y, Integer z, Float yaw, Float pitch, Integer goalX, Integer goalY, Integer goalZ) {
+      this(UUID.randomUUID(), weight, x, y, z, yaw, pitch, goalX, goalY, goalZ);
     }
 
     public BlockPos toBlockPos() {

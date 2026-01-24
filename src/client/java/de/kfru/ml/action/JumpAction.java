@@ -7,12 +7,12 @@ import net.minecraft.client.MinecraftClient;
 public class JumpAction extends PlayerAction {
 
     @Override
-    public boolean perform(final MinecraftClient client) {
-        final boolean stillPressing = ticksRemaining > 0;
-        ticksRemaining--;
+    public void performUntilStop(final MinecraftClient client) {
+        client.options.jumpKey.setPressed(true);
+    }
 
-        client.options.jumpKey.setPressed(stillPressing);
-
-        return !stillPressing;
+    @Override
+    public void stop(MinecraftClient client) {
+        client.options.jumpKey.setPressed(false);
     }
 }

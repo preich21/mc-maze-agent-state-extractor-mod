@@ -1,0 +1,24 @@
+{
+  "stats": {
+    "minecraft:used": {
+      "minecraft:diamond_block": 1,
+      "minecraft:bedrock": 14
+    },
+    "minecraft:custom": {
+      "minecraft:time_since_rest": 6708,
+      "minecraft:walk_one_cm": 748,
+      "minecraft:leave_game": 1,
+      "minecraft:damage_taken": 320,
+      "minecraft:play_time": 11205,
+      "minecraft:jump": 9,
+      "minecraft:time_since_death": 6685,
+      "minecraft:sprint_one_cm": 725,
+      "minecraft:total_world_time": 15627,
+      "minecraft:fly_one_cm": 26875,
+      "minecraft:crouch_one_cm": 1685,
+      "minecraft:sneak_time": 697,
+      "minecraft:deaths": 1
+    }
+  },
+  "DataVersion": 4671
+}

@@ -3,10 +3,13 @@ package de.kfru.ml.commands;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import de.kfru.ml.util.StartPointsData;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
@@ -19,6 +22,7 @@ public class AddStartPoint extends AbstractCommandHandler {
   public static final Logger LOGGER = LoggerFactory.getLogger("AddStartPointCommand");
 
   private static final String ARG_WEIGHT = "weight";
+  final static int SPAWN_POINT_RADIUS = 50;
 
   public AddStartPoint() {
     super("startpoint", List.of(CommandManager.argument(ARG_WEIGHT, FloatArgumentType.floatArg())));
@@ -50,7 +54,8 @@ public class AddStartPoint extends AbstractCommandHandler {
       return 0;
     }
 
-    final StartPointsData.StartPoint startPoint = new StartPointsData.StartPoint(weight, pos.getX(), pos.getY(), pos.getZ(), player.getYaw(), player.getPitch());
+    final BlockPos goalPoint = this.getGoalPoint(pos, server.getOverworld());
+    final StartPointsData.StartPoint startPoint = new StartPointsData.StartPoint(weight, pos, player.getYaw(), player.getPitch(), goalPoint);
     if (data.containsStartPoint(pos.getX(), pos.getY(), pos.getZ())) {
       data.updateStartPoint(startPoint);
       source.sendFeedback(() -> Text.literal("Updated start point at " + pos.toShortString() + " (weight=" + weight + ")"), true);
@@ -61,5 +66,19 @@ public class AddStartPoint extends AbstractCommandHandler {
       LOGGER.info("Saved start point {} (weight={}) for player {}", pos.toShortString(), weight, player.getName().getString());
     }
     return 1;
+  }
+
+  private BlockPos getGoalPoint(final BlockPos startPoint, final ServerWorld world) {
+    for (int x = -SPAWN_POINT_RADIUS; x < SPAWN_POINT_RADIUS; x++) {
+      for (int y = -1; y < 20; y++) {
+        for (int z = -SPAWN_POINT_RADIUS; z < SPAWN_POINT_RADIUS; z++) {
+          final BlockPos block = startPoint.add(x, y, z);
+          if (world.getBlockState(block).getBlock().equals(Blocks.DIAMOND_BLOCK)) {
+            return block;
+          }
+        }
+      }
+    }
+    throw new IllegalStateException("No goal block found in vicinity of start point " + startPoint.toShortString());
   }
 }

@@ -16,3 +16,21 @@ Content-Type: application/json // used only for IDE highlighting.
 
 ### Open websocket connection for interactive flow
 WEBSOCKET ws://localhost:8081/websocket
+
+### Open websocket connection for reset with point copy mechanism
+WEBSOCKET ws://localhost:8081/websocket
+
+{
+  "type" : "RESET_REQUEST",
+  "episode" : 1,
+  "startPoint" : {
+    "id" : "59f334f0-b682-4e31-ae34-1ffe29433e55",
+    "weight" : 3.0,
+    "x" : 200,
+    "y" : 0,
+    "z" : 0,
+    "yaw" : -72.68340730047726,
+    "pitch" : -17.481767287486207
+  },
+  "startPointRotation": "ROTATE_90"
+}

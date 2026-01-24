@@ -7,8 +7,7 @@ public enum MessageType {
     HELLO,
     ACTION_REQUEST,
     RESET_REQUEST,
-    STATE_AFTER_RESET,
-    STATE_AFTER_ACTION,
+    OBSERVATION,
     ;
 
     private static final Gson GSON = new Gson();

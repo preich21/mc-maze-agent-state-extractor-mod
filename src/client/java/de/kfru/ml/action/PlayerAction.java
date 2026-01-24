@@ -6,11 +6,7 @@ import net.minecraft.client.MinecraftClient;
 @SuperBuilder
 public abstract class PlayerAction {
 
-    protected int ticksRemaining;
+    public abstract void performUntilStop(MinecraftClient client);
+    public abstract void stop(MinecraftClient client);
 
-    public abstract boolean perform(MinecraftClient client);
-
-    public void cancel() {
-        ticksRemaining = 0;
-    }
 }

@@ -2,7 +2,6 @@ package de.kfru.ml.ws;
 
 import de.kfru.ml.util.StartPointsData;
 import de.kfru.ml.ws.messages.*;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import org.java_websocket.WebSocket;
@@ -19,7 +18,8 @@ public class AgentWebsocketServer extends WebSocketServer {
 
     private static final Logger logger = LoggerFactory.getLogger("mc-maze-agent-state-extractor-mod");
 
-    private final AtomicReference<IncomingMessage> latestAction = new AtomicReference<>();
+    public final AtomicReference<ActionMessage> latestAction = new AtomicReference<>();
+    public final AtomicReference<ResetMessage> resetMessage = new AtomicReference<>();
 
     private List<StartPointsData.StartPoint> startPoints = new ArrayList<>();
 
@@ -37,10 +37,6 @@ public class AgentWebsocketServer extends WebSocketServer {
         }
     }
 
-    public IncomingMessage consumeLatestAction() {
-        return latestAction.getAndSet(null);
-    }
-
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         logger.info("WebSocket connection opened from [{}]", conn.getRemoteSocketAddress());
@@ -50,8 +46,7 @@ public class AgentWebsocketServer extends WebSocketServer {
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        logger.info("WebSocket connection closed from [{}]: code={}, reason={}, remote={}",
-                conn.getRemoteSocketAddress(), code, reason, remote);
+        logger.info("WebSocket connection closed from [{}]: code={}, reason={}, remote={}", conn.getRemoteSocketAddress(), code, reason, remote);
     }
 
     @Override
@@ -65,7 +60,8 @@ public class AgentWebsocketServer extends WebSocketServer {
             }
             case RESET_REQUEST -> {
                 final ResetMessage resetMessage = ResetMessage.fromJson(message);
-                latestAction.set(resetMessage);
+                latestAction.set(null);
+                this.resetMessage.set(resetMessage);
             }
             default -> logger.warn("Received unknown message type: {}", type);
         }
@@ -79,5 +75,9 @@ public class AgentWebsocketServer extends WebSocketServer {
     @Override
     public void onStart() {
         logger.info("WebSocket server started on port: {}", getPort());
+    }
+
+    public boolean isConnected() {
+        return !this.getConnections().isEmpty();
     }
 }
